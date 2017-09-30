@@ -105,7 +105,7 @@ public class MajorUIController implements Initializable {
         chartShow.getData().addAll(courseSeries, speedSeries, rudderSeries);
         showPane.setId("showPane");
         
-        showPane.getChildren().add(new Circle(300, 50, 10, Color.BLUE));
+        //showPane.getChildren().add(new Circle(300, 50, 10, Color.BLUE));
     }
     
     //显示临时创建的缓存区，创建动作激活后，清空缓存
@@ -294,7 +294,12 @@ public class MajorUIController implements Initializable {
         float rudderAngle = 0.0F;
         tempVessel.setDynAttribute(head, course, speed, longitude, latitude, state, expTime, rudderAngle);
         tempVessel.addDynInfo(new DynInfo(head, course, speed, longitude, latitude, state, updateTime, rudderAngle));
+        tempVessel.setDestination(new Point2D(longitude + Math.sin(Math.toRadians(head))*speed*100,
+                latitude + Math.cos(Math.toRadians(head))*speed*100));
         
+        System.out.println("position destination : " + tempVessel.getDestination().getX() + " , " + tempVessel.getDestination().getY());
+        
+        showPane.getChildren().add( new Circle(tempVessel.getDestination().getX(), tempVessel.getDestination().getY(), 5, Color.BLUE) );
         //将临时创建的对象添加到全局对象中，提供全局控制
         AutoNavVehicle.navigators.add(tempVessel);
         if (tempVessel.getIdNumber().equals("12")) {
@@ -302,12 +307,15 @@ public class MajorUIController implements Initializable {
             //chartThread(true);
             chartupdate = new chartUpdate(this.currentNavigator);
             chartupdate.start();
+            
+            showPane.getChildren().add( new Circle(tempVessel.getDestination().getX(), tempVessel.getDestination().getY(), 5, Color.BLUE) );
         }
         //还原为空值
         System.out.println(tempVessel.toString());
         tempVessel = null;
         navigatorsList.getItems().add("idNumber : "+this.idNumber+"<->Name : "+this.name);
         //最后需要加入清空输入信息的操作     ----  2017.6.28 cancle
+        
     }
     
     /********折线图的动态显示*****************************************/
@@ -319,10 +327,10 @@ public class MajorUIController implements Initializable {
     public XYChart.Series<Number, Number> speedSeries = new XYChart.Series<>();
     public XYChart.Series<Number, Number> rudderSeries = new XYChart.Series<>();
     
-    public ExecutorService executor;
-    public ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<Number> dataQ2 = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<Number> dataQ3 = new ConcurrentLinkedQueue<>();
+    //public ExecutorService executor;
+//    public ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<>();
+//    public ConcurrentLinkedQueue<Number> dataQ2 = new ConcurrentLinkedQueue<>();
+//    public ConcurrentLinkedQueue<Number> dataQ3 = new ConcurrentLinkedQueue<>();
     
     public chartUpdate chartupdate = null;
     public int time = 0;

@@ -1,8 +1,8 @@
 
 package unity;
 
-import javafx.geometry.BoundingBox;
 import javafx.geometry.Point2D;
+import javafx.scene.shape.Circle;
 
 public class VisualNav {
     
@@ -10,14 +10,14 @@ public class VisualNav {
     public Point2D position;
     public Point2D velocity;
     public double course;
-    public BoundingBox box;
+    public Circle area;
     
-    public VisualNav(String visualID, double x, double y, Point2D velocity, BoundingBox box){
+    public VisualNav(String visualID, double x, double y, Point2D velocity, Circle area){
         this.visualID = visualID;
         this.position = new Point2D(x, y);
         this.velocity = velocity;
         
-        this.box = box;
+        this.area = area;
     }
     
     public double getX(){
@@ -25,6 +25,14 @@ public class VisualNav {
     }
     public double getY(){
         return this.position.getY();
+    }
+    public Circle getArea(){
+        return this.area;
+    }
+    public void setArea(double centerX, double centerY, double radius){
+        this.area.setCenterX(centerX);
+        this.area.setCenterY(centerY);
+        this.area.setRadius(radius);
     }
     
     public double getCourse(){
@@ -36,8 +44,8 @@ public class VisualNav {
         return angle;  //返回航向
     }
     
-    public boolean isColliding(VisualNav other){
-        return box.intersects(other.box);
+    public boolean isColliding(Circle other){
+        return this.area.getBoundsInParent().intersects(other.getBoundsInParent());
     }
 }
 

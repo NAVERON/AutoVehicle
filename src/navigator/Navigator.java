@@ -1418,4 +1418,5 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         return "Navigator{" + "idNumber=" + idNumber + ", name=" + name + ", navLength=" + navLength + ", beam=" + beam + ", head=" + head + ", course=" + course + ", speed=" + speed + ", latitude=" + latitude + ", longitude=" + longitude + '}';
     }
     
+    
 }
