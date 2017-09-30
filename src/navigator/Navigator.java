@@ -13,9 +13,11 @@ import environment.Situation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Point2D;
@@ -23,6 +25,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
 import service.ComThread;
 import unity.LocalVessel;
+import unity.VisualNav;
 
 /**
  * @function
@@ -130,8 +133,8 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     //获取属性方法-------结束
     
     /*------------------------------------**********************************Go-AND-Test*********************************/
-    public static List<Vessel> otherNavs = new LinkedList<Vessel>();  //存储通信范围内的对象
-    public List<LocalVessel> local = new LinkedList<LocalVessel>();  //存储转换信息
+    public List<Vessel> otherNavs = new LinkedList<>();  //存储通信范围内的对象
+    public List<LocalVessel> locals = new LinkedList<>();  //存储转换信息
     public float[] oneRange, twoRange, threeRange, fourRange;  //四个领域的可行范围
     
     //分组后的组存储
@@ -139,10 +142,11 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     ArrayList<LinkedList<LocalVessel>> two;
     ArrayList<LinkedList<LocalVessel>> three;
     ArrayList<LinkedList<LocalVessel>> four;
+    
     //下面记录速度和角度的偏差
-    public int lastDesition = 0;  //记录上次的操纵----1表示右舷，0表示保持，-1表示左舷转向      7.18----->正向右，负向左
-    public float nowDesition = 0;  //可能用不到----记录本次的决定    与之相同，正负号表示左右方向，带有大小
-    public float speedDestion = 0;  //速度决定
+    public int lastDecision = 0;  //记录上次的操纵----1表示右舷，0表示保持，-1表示左舷转向      7.18----->正向右，负向左
+    public float nowDecision = 0;  //可能用不到----记录本次的决定    与之相同，正负号表示左右方向，带有大小
+    public float speedDecision = 0;  //速度决定
     private float originHead, originSpeed;
     public Point2D destination;  //目标地
     public double finalHead;  //需要去的航向
@@ -150,7 +154,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     /*============================================特殊区域======================================================*/
     public void analyse(){  //分析当前形式
         otherNavs.clear();  //清空上次计算的 --- 思考如何能够减少这种重复遍历的计算
-        local.clear();
+        locals.clear();
         
         //遍历当前全局航行器，找出距离符合条件的   200 px
         float radius = this.speed*100;  //更改---根据速度判断危险区域
@@ -164,9 +168,18 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 otherNavs.add(next);  //添加的是指向引用
             }
         }
-        if ( !isDanger && otherNavs.isEmpty() ) {  //如果周围没有其他对象，则没必要进行下面的计算
-            isDanger = false;
-            this.rudderAngle = 0;
+        if(!otherNavs.isEmpty()){
+            isDanger = true;
+        }
+        if ( !isDanger) {  //如果周围没有其他对象，则没必要进行下面的计算 ---2017.10.1如果没有危险，就复航
+            if(otherNavs.isEmpty()){
+                isDanger = false;
+            }
+            //开始复航
+            finalHead = calAngle(destination.getX()-longitude, destination.getY()-latitude);
+            System.out.println(this.idNumber +" : "+ this.head + "复航方向 : " + finalHead);
+            pinRudder((float) finalHead);
+            
             return;
         }
         //添加完成，下面进行分析------------------------------------------------------------------
@@ -196,11 +209,11 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 }
             }
             y = -y;  //这里转换成左下角坐标系
-            local.add( new LocalVessel(id, x, y, dh, other.getSpeed()) );  //相对于本航行器，其他的位置和方向存储-----速度不受坐标系转换的影像
+            locals.add( new LocalVessel(id, x, y, dh, other.getSpeed()) );  //相对于本航行器，其他的位置和方向存储-----速度不受坐标系转换的影像
         }
         //2017.7.1  ----  这里的计算斜率需要重新计算以左下角为原点的坐标系计算
-        for(int i = 0; i < local.size(); i++){  //计算每个点相对角度
-            local.get(i).ratio = getRatio2( local.get(i).longitude, local.get(i).latitude );  //求取斜率时，y坐标添加负号，为了转换坐标，只是暂时解决
+        for(int i = 0; i < locals.size(); i++){  //计算每个点相对角度
+            locals.get(i).ratio = getRatio2(locals.get(i).longitude, locals.get(i).latitude );  //求取斜率时，y坐标添加负号，为了转换坐标，只是暂时解决
         }
         //--------- 聚类分析 ----------拿local做计算
         //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
@@ -209,7 +222,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         LinkedList<LocalVessel> part3 = new LinkedList<>();  // 150 -> 210
         LinkedList<LocalVessel> part4 = new LinkedList<>();  //210 - 330
         
-        for (LocalVessel getLocalVessel : local) {
+        for (LocalVessel getLocalVessel : locals) {
             if (getLocalVessel.ratio >= 330 || getLocalVessel.ratio <= 30) {
                 part1.add(getLocalVessel);
             }
@@ -226,7 +239,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
 //            if(this.idNumber.equals("12")){
 //                System.out.println(local.toString());
 //            }
-            
         }
         //这里转换成负数，方便后边排序计算-----part1---根据ratio排序
         for(int g = 0; g < part1.size(); g++){  //只需要对第一个进行特殊处理
@@ -482,8 +494,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             four.get(belong-1).add(part4.get(x));
         }
         //2017.7.18  建议使用map映射，键值对
-        //----------------------------------------------------------------------------------------------
-        //下面进行凸包求解
         //---------------2017.6.22-------------去掉凸包，可以直接根据聚类来计算出边界
         //对第一个区间的需要进行变换，否则排序不能正常 --------这部分放在了前面
         for(int n = 0; n < one.size(); n++){  //每一个分组，角度从小到大
@@ -501,6 +511,11 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         //如果belong = -1，则表示不属于任何分组，否则 它会属于其中一个分组，也就是说在当前航行器前面有几个跟他属性相似的
         //这里添加是否属于周边障碍物的一个分组
         //取得分组后的极值DCPA
+        LinkedList<VisualNav> oneVisuals = new LinkedList<>();
+        LinkedList<VisualNav> twoVisuals = new LinkedList<>();
+        LinkedList<VisualNav> threeVisuals = new LinkedList<>();
+        LinkedList<VisualNav> fourVisuals = new LinkedList<>();
+        
         oneDCPA = getPoleDCPA(one);
         twoDCPA = getPoleDCPA(two);
         threeDCPA = getPoleDCPA(three);
@@ -515,22 +530,26 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         //判断本航行器属于哪个组？   //虚拟一个本地对象
         LocalVessel the = new LocalVessel();
         for (int index = 0; index < one.size(); index++) {
-            for (LocalVessel localvessel : one.get(index)) {
+            for(int in = 0; in < one.get(index).size(); in++){
+                LocalVessel localvessel = one.get(index).get(in);
+            
                 float dx = localvessel.longitude - this.longitude;
                 float dy = localvessel.latitude - this.latitude;
                 float dh = localvessel.head;
                 double d = Math.sqrt(dx * dx + dy * dy + dh * dh);
                 if (d <= 100) {
-                    the.belong = localvessel.belong;
-                    break;
+                    System.out.println("本航行器属于分组 : " + localvessel.id);
+                    double dcpa = calDCPA(the, localvessel);
+                    if(Math.abs(dcpa) < 20){
+                        pinRudder(localvessel.head);
+                        isDanger = true;
+                    }else{
+                        isDanger = false;
+                    }
+                    return;
                 }
             }
-            //只计算在第一区域的同组情况
-            if(the.belong != -1){  //index是分组的索引
-                return;  //保持现状
-            }
         }
-        
         //得到极值点之后怎么办？分析可以直接操舵了
         /*一共分成四个领域*/
         oneRange = new float[]{-30F, 30F};
@@ -971,6 +990,27 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         
         return DCPA;
     }
+    public double calDCPA(LocalVessel the, LocalVessel vessel){
+        double DCPA;
+        double dis = Math.sqrt(vessel.longitude*vessel.longitude + vessel.latitude*vessel.latitude);
+        //计算矢量和角度
+        float rx = (float) ( vessel.speed*Math.sin(Math.toRadians(vessel.head)) );
+        float ry = (float) ( vessel.speed*Math.cos(Math.toRadians(vessel.head)) - the.speed );
+        float rh = getRatio2(rx, ry);  //矢量和的角度
+        //真方位角度
+        double th = 180 + vessel.ratio;
+        while(th>=360){  //保证范围在0-360之间
+            th -=360;
+        }
+        double alpha = rh-th;
+        if (th<180) {
+            alpha = -alpha;
+        }
+        alpha = Math.toRadians(alpha);
+        DCPA = Math.sin(alpha)*dis;
+        
+        return DCPA;
+    }
     public float[][] getPoleRatio(List<LinkedList<LocalVessel>> list){
         int size = list.size();
         float[][] ratios = new float[size][2];
@@ -991,6 +1031,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     private boolean isTurning = false;  //是否正在转向？
     private boolean isSpeeding = false;  //是否正在变速
     
+    //public HashMap<String, LinkedList<Double>> dis = new HashMap<>();
     @Override
     public void goAhead(){
         analyse();
@@ -1017,6 +1058,23 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         this.setRotate(head - 90);
         //System.out.println(this.idNumber + "=航向："+this.head + "  舵角"+this.rudderAngle);
         addDynInfo( new DynInfo(head, course, speed, longitude, latitude, state, new Date(), rudderAngle) );
+        
+//        if(this.idNumber.equals("12")){
+//            for(int i = 0; i < AutoNavVehicle.navigators.size(); i++){
+//                Vessel temp = AutoNavVehicle.navigators.get(i);
+//                Iterator items = dis.entrySet().iterator();
+//                while(items.hasNext()){
+//                    Map.Entry entry = (Map.Entry) items.next();
+//                    if(temp.getIdNumber().equals(entry.getKey())){
+//                        double distance = this.getPosition().distance(temp.getPosition());
+//                        LinkedList<Double> link = (LinkedList<Double>) entry.getValue();
+//                        link.add(distance);
+//                    }
+//                }
+//            }
+//        }
+
+        
     }
     @Override
     public void setRudder(float rudderAngle){
@@ -1106,7 +1164,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             public void run() {
                 isTurning = true;
                 
-                while ( !(Math.abs(curDiff)<1 && Math.abs(rudderAngle)<1) && isTurning) {
+                while ( !(Math.abs(curDiff)<2 && Math.abs(rudderAngle)<2) && isTurning) {
                     curDiff = desDir - head;
                     if (curDiff > 180) {
                         curDiff -= 360;
@@ -1411,10 +1469,12 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     
     public double calAngle(double dx, double dy) {  //向上是0度角，顺时针旋转
         double theta = Math.atan2(dy, dx);
+        theta += Math.PI/2;
         double angle = Math.toDegrees(theta);
         if (angle < 0) {
             angle += 360;
         }
+        System.out.println("calAngle : " + angle);
         return angle;
     }
 }
