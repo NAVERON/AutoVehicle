@@ -122,7 +122,7 @@ public class FileDataManager {  //存储对象流  取消，改编为存储字�
     }
     
     public static List<DynInfo> readDyninfos(String filename){
-        List<DynInfo> objs = new ArrayList<DynInfo>();
+        List<DynInfo> objs = new ArrayList<>();
         
         File file = new File("store\\"+filename+".csv");
         if (!file.exists()) {

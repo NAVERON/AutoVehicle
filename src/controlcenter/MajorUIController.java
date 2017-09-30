@@ -277,7 +277,7 @@ public class MajorUIController implements Initializable {
                 callNumber = "defaultCallNumber";
             }
             if ( (destination = destination_text.getText().trim()).length() == 0 ) {
-                destination = "defaultDestination";
+                destination = "300,50";
             }
             if ( expTimePick.getValue() == null ) {
                 expTime = "null";

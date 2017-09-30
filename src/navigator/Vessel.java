@@ -64,7 +64,7 @@ public class Vessel extends Navigator {  //水上航行器,具体的类，根据
             @Override
             public void handle(MouseEvent event){  //这里只是测试转向的功能，这个功能需要自动完成
                 if (event.getButton()==MouseButton.SECONDARY) {  //右键输出本航行器信息
-                    Vessel.this.setRudder(Vessel.this.getRudderAngle() + 2);
+                    //Vessel.this.setRudder(Vessel.this.getRudderAngle() + 2);
                     System.out.println( Vessel.this.getName()
                             +"\nposition-->x :    "+Vessel.this.getPosition().getX()+"    y :     "+Vessel.this.getPosition().getY()
                             +"\nspeed  :   "+Vessel.this.getSpeed()
@@ -72,7 +72,7 @@ public class Vessel extends Navigator {  //水上航行器,具体的类，根据
                     );
                 }
                 else if(event.getButton()==MouseButton.PRIMARY){  //左舵-2， 读取本航行器存储的信息
-                    Vessel.this.setRudder(Vessel.this.getRudderAngle()-2);
+                    //Vessel.this.setRudder(Vessel.this.getRudderAngle()-2);
                     ArrayList<DynInfo> dyninfos = (ArrayList<DynInfo>) FileDataManager.readDyninfos(Vessel.this.getIdNumber());
                     if (dyninfos == null) {
                         System.out.println("no data!!");
