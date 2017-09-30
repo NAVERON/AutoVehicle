@@ -50,7 +50,7 @@ public class ComThread extends Thread{
             //通信分析的结果，优先级较高
             //找出发信人的信息
             LocalVessel get = null;
-            for (LocalVessel next : navigator.local) {
+            for (LocalVessel next : navigator.locals) {
                 if (next.id.equals(message.getFrom())) {
                     get = next;
                     break;

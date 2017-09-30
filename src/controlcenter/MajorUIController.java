@@ -297,9 +297,6 @@ public class MajorUIController implements Initializable {
         tempVessel.setDestination(new Point2D(longitude + Math.sin(Math.toRadians(head))*speed*200,
                 latitude - Math.cos(Math.toRadians(head))*speed*200));
         
-        //System.out.println("position destination : " + tempVessel.getDestination().getX() + " , " + tempVessel.getDestination().getY());
-        
-        //showPane.getChildren().add( new Circle(tempVessel.getDestination().getX(), tempVessel.getDestination().getY(), 5, Color.BLUE) );
         //将临时创建的对象添加到全局对象中，提供全局控制
         AutoNavVehicle.navigators.add(tempVessel);
         if (tempVessel.getIdNumber().equals("12")) {

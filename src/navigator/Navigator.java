@@ -166,10 +166,8 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             if ( Math.abs(this.getPosition().getX()-next.getPosition().getX()) < radius  //经度代表x坐标
                     && Math.abs(this.getPosition().getY() - next.getPosition().getY()) < radius ) {  //纬度是y坐标
                 otherNavs.add(next);  //添加的是指向引用
+                isDanger = true;
             }
-        }
-        if(!otherNavs.isEmpty()){
-            isDanger = true;
         }
         if ( !isDanger) {  //如果周围没有其他对象，则没必要进行下面的计算 ---2017.10.1如果没有危险，就复航
             if(otherNavs.isEmpty()){
@@ -573,7 +571,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         twoRange = calRange(two, twoRange, twoDCPA, twoPole);
         threeRange = calRange(three, threeRange, threeDCPA, threePole);
         fourRange = calRange(four, fourRange, fourDCPA, fourPole);
-        System.out.println( this.idNumber + " 目标航向 : "+(oneRange[0] + oneRange[1])/2);
+//        System.out.println( this.idNumber + " 目标航向 : "+(oneRange[0] + oneRange[1])/2);
         if(oneRange != null){
             pinRudder( (oneRange[0] + oneRange[1])/2 );
         }else if(twoRange != null){
@@ -891,7 +889,11 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     double[][] oneDCPA, twoDCPA, threeDCPA, fourDCPA;
     float[][] onePole, twoPole, threePole, fourPole;
     public float[] calRange(List<LinkedList<LocalVessel>> list, float[] curRange, double[][] DCPA, float[][] Pole){  //分别计算区域的最终方向
-        
+        if(list.size() == 1){
+            if(DCPA[0][0]*DCPA[0][1] < 0){
+                curRange[0] = Pole[0][1];
+            }
+        }
         for(int i = 0; i < list.size()-1; i++){
             LocalVessel temp1 = list.get(i).getFirst();
             LocalVessel temp2 = list.get(i+1).getFirst();
