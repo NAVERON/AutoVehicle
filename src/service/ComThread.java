@@ -1,0 +1,106 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package service;
+
+import controlcenter.AutoNavVehicle;
+import java.util.concurrent.ArrayBlockingQueue;
+import navigator.Navigator;
+import environment.MessageType;
+import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import navigator.Vessel;
+import unity.LocalVessel;
+
+/**
+ *  @function
+ *     实现 对象向3服务线程4发送信息
+ * @author NAVERON
+ */
+
+//客户端通信线程  调用服务对象将信息放入队列中
+public class ComThread extends Thread{
+    //需要有两个队列，一个代表发送的信息，另一个代表接收的信息 -- 2017.5.31 --> remove this
+    public ArrayBlockingQueue<MessageType> messages = new ArrayBlockingQueue<>(100);  //个体对象消息队列
+    
+    //通过回调传递参数
+    Navigator navigator = null;
+    public ComThread(Navigator navigator){  //初始化的过程中应当将该对象this传递近来，然后就可以调用Navigator的方法了
+        //初始化过程中处理
+        this.navigator = navigator;
+    }
+    
+    //主动发送，被动接收-----------------
+    @Override
+    public void run() { //航行器在将接收的message加入到messages后，开启线程并处理
+        super.run();
+        MessageType message = null;
+        
+        while (messages.size()>0) {  //针对每一个信息单独分析，还是求解可行域，最后求交集
+            try {
+                message = messages.take();
+                System.out.println(message.getContent());
+            } catch (InterruptedException ex) {
+                Logger.getLogger(ComThread.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            //根据协商协议的规则 --- 分析messge内容 --> 需要发送就调用发送方法，其实就是在服务端队列中添加消息
+            //通信分析的结果，优先级较高
+            //找出发信人的信息
+            LocalVessel get = null;
+            for (LocalVessel next : navigator.local) {
+                if (next.id.equals(message.getFrom())) {
+                    get = next;
+                    break;
+                }
+            }
+            if ( message.getContent().equals("port") ) {
+                //左舷
+                navigator.pinRudder(get.ratio);
+            }else if( message.getContent().equals("starboard") ){
+                //右舷
+                navigator.pinRudder(get.ratio);
+            }
+        }
+    }
+    
+    public boolean sendToSingle(String toId, String content){
+        boolean isOk = false;
+        String fromId = navigator.getIdNumber();
+        
+        MessageType message = new MessageType(fromId, toId, content);
+        ComServer.getInstance().addQueue(message);
+        
+        if (ComServer.getInstance().isAlive()) {  //需要判断线程处理是否正在进行，如果存在，就不需要再次调用了
+            isOk = true;
+        }else{
+            ComServer.getInstance().start();  //处理这个发送信息，调用服务程序，处理信息表
+            isOk = true;
+        }
+        
+        return isOk;  //需要返回确认吗？应该不需要
+    }
+    
+    public boolean sendToAll(String content){
+        boolean isOk = false;
+        String fromId = navigator.getIdNumber();
+        
+        for(Iterator<Vessel> items = AutoNavVehicle.navigators.iterator();items.hasNext();){
+            Vessel next = items.next();
+            if ( ! next.getIdNumber().equals(navigator.getIdNumber()) ) {
+                ComServer.getInstance().addQueue(new MessageType(fromId, next.getIdNumber(), content));
+            }
+        }
+        if (ComServer.getInstance().isAlive()) {  //需要判断线程处理是否正在进行，如果存在，就不需要再次调用了
+            isOk = true;
+        }else{
+            ComServer.getInstance().start();  //处理这个发送信息，调用服务程序，处理信息表
+            isOk = true;
+        }
+        
+        return isOk;
+    }
+    
+}
