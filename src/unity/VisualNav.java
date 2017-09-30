@@ -9,14 +9,14 @@ public class VisualNav {
     public String visualID;
     public Point2D position;
     public Point2D velocity;
-    public double course;
+    public double head;
     public Circle area;
     
     public VisualNav(String visualID, double x, double y, Point2D velocity, Circle area){
         this.visualID = visualID;
         this.position = new Point2D(x, y);
         this.velocity = velocity;
-        
+        this.head = calHead(velocity.getX(), velocity.getY());
         this.area = area;
     }
     
@@ -25,6 +25,9 @@ public class VisualNav {
     }
     public double getY(){
         return this.position.getY();
+    }
+    public double getSpeed(){
+        return Math.sqrt( velocity.getX()*velocity.getX() + velocity.getY()*velocity.getY() );
     }
     public Circle getArea(){
         return this.area;
@@ -35,8 +38,8 @@ public class VisualNav {
         this.area.setRadius(radius);
     }
     
-    public double getCourse(){
-        double theta = Math.atan2(this.velocity.getY(), this.velocity.getX());
+    private double calHead(double x, double y){
+        double theta = Math.atan2(y, x);
         double angle = Math.toDegrees(theta);
         if (angle < 0) {
             angle += 360;
@@ -46,6 +49,13 @@ public class VisualNav {
     
     public boolean isColliding(Circle other){
         return this.area.getBoundsInParent().intersects(other.getBoundsInParent());
+    }
+    
+    @Override
+    public String toString() {
+        return "LocalVessel{" + "id=" + visualID
+                + ", longitude=" + position.getX() + ", latitude=" + position.getY()
+                + ", head=" + head + ", speed=" + getSpeed() + ", area=" + getArea().toString() + '}';
     }
 }
 

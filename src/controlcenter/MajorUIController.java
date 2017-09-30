@@ -186,7 +186,7 @@ public class MajorUIController implements Initializable {
         
         this.currentNavigator = null;
         if (chartupdate.isAlive()) {
-            chartupdate.setCurNavigator(this.currentNavigator);
+            chartupdate.setCurNavigator(null);
         }
         chartupdate = null;  //结束这个线程
         System.gc();  //回收垃圾
@@ -294,12 +294,12 @@ public class MajorUIController implements Initializable {
         float rudderAngle = 0.0F;
         tempVessel.setDynAttribute(head, course, speed, longitude, latitude, state, expTime, rudderAngle);
         tempVessel.addDynInfo(new DynInfo(head, course, speed, longitude, latitude, state, updateTime, rudderAngle));
-        tempVessel.setDestination(new Point2D(longitude + Math.sin(Math.toRadians(head))*speed*100,
-                latitude + Math.cos(Math.toRadians(head))*speed*100));
+        tempVessel.setDestination(new Point2D(longitude + Math.sin(Math.toRadians(head))*speed*200,
+                latitude - Math.cos(Math.toRadians(head))*speed*200));
         
-        System.out.println("position destination : " + tempVessel.getDestination().getX() + " , " + tempVessel.getDestination().getY());
+        //System.out.println("position destination : " + tempVessel.getDestination().getX() + " , " + tempVessel.getDestination().getY());
         
-        showPane.getChildren().add( new Circle(tempVessel.getDestination().getX(), tempVessel.getDestination().getY(), 5, Color.BLUE) );
+        //showPane.getChildren().add( new Circle(tempVessel.getDestination().getX(), tempVessel.getDestination().getY(), 5, Color.BLUE) );
         //将临时创建的对象添加到全局对象中，提供全局控制
         AutoNavVehicle.navigators.add(tempVessel);
         if (tempVessel.getIdNumber().equals("12")) {

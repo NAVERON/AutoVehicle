@@ -554,16 +554,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         twoRange = calRange(two, twoRange, twoDCPA, twoPole);
         threeRange = calRange(three, threeRange, threeDCPA, threePole);
         fourRange = calRange(four, fourRange, fourDCPA, fourPole);
-        
-//        if(oneRange != null){
-//            pinRudder(oneRange[0]);
-//        }else if(twoRange != null){
-//            pinRudder(twoRange[0]);
-//        }else if(threeRange != null){
-//            pinSpeed(1);
-//        }else if(fourRange != null){
-//            pinRudder(fourRange[1]);
-//        }
+        System.out.println( this.idNumber + " 目标航向 : "+(oneRange[0] + oneRange[1])/2);
         if(oneRange != null){
             pinRudder( (oneRange[0] + oneRange[1])/2 );
         }else if(twoRange != null){
@@ -1136,7 +1127,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                     lastDiff = curDiff;
                     
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(500);
                     } catch (InterruptedException ex) {
                         Logger.getLogger(Navigator.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -1154,7 +1145,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         if(isSpeeding){
             isSpeeding = false;
             try {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (InterruptedException ex) {
                 Logger.getLogger(Navigator.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1167,7 +1158,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                     double diff = toSpeed - Navigator.this.speed;
                     speed += diff/4;
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(500);
                     } catch (InterruptedException ex) {
                         Logger.getLogger(Navigator.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -1418,5 +1409,12 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         return "Navigator{" + "idNumber=" + idNumber + ", name=" + name + ", navLength=" + navLength + ", beam=" + beam + ", head=" + head + ", course=" + course + ", speed=" + speed + ", latitude=" + latitude + ", longitude=" + longitude + '}';
     }
     
-    
+    public double calAngle(double dx, double dy) {  //向上是0度角，顺时针旋转
+        double theta = Math.atan2(dy, dx);
+        double angle = Math.toDegrees(theta);
+        if (angle < 0) {
+            angle += 360;
+        }
+        return angle;
+    }
 }
