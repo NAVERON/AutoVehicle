@@ -206,6 +206,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         //2017.7.1  ----  这里的计算斜率需要重新计算以左下角为原点的坐标系计算
         for(int i = 0; i < locals.size(); i++){  //计算每个点相对角度
             locals.get(i).ratio = getRatio2(locals.get(i).longitude, locals.get(i).latitude );  //求取斜率时，y坐标添加负号，为了转换坐标，只是暂时解决
+            //System.out.println("计算出来的ratio是 : " + locals.get(i).ratio);
         }
         //--------- 聚类分析 ----------拿local做计算
         //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
@@ -556,27 +557,39 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 }
             }
         }
+        
         //得到极值点之后怎么办？分析可以直接操舵了
         /*一共分成四个领域*/
         oneRange = new float[]{-30F, 30F};
         twoRange = new float[]{30F, 150F};
-        threeRange = new float[]{150F, 210F};
-        fourRange = new float[]{210F, 330F};
+        //threeRange = new float[]{150F, -150F};
+        fourRange = new float[]{-150F, -30F};
         //下面分析   ================   这里有一个问题，如果做出了相同的决策，则下面不需要重新进行动作
         oneRange = calRange(one, oneRange, oneDCPA, onePole);
         twoRange = calRange(two, twoRange, twoDCPA, twoPole);
-        threeRange = calRange(three, threeRange, threeDCPA, threePole);
+        //threeRange = calRange(three, threeRange, threeDCPA, threePole);
         fourRange = calRange(four, fourRange, fourDCPA, fourPole);
 //        System.out.println( this.idNumber + " 目标航向 : "+(oneRange[0] + oneRange[1])/2);
 //这里的Range表示的是角度的相对值，需要加上原坐标系的值
-        if(oneRange != null){
-            pinRudder(oneRange[0]);
-        }else if(twoRange != null){
-            pinRudder( (twoRange[0] + twoRange[1])/2 );
-        }else if(threeRange != null){
-            //需要通信协商
-        }else if(fourRange != null){
-            pinRudder(fourRange[1]);
+        //Range里面应该是角度偏差值
+        if(this.idNumber.equals("12")){
+            System.out.println(this.idNumber +" : "+oneRange[0] + "  第一  " + oneRange[1]);
+        }
+        //System.out.println(twoRange[0] + "  Second  " + twoRange[1]);
+        //System.out.println(fourRange[0] + "  Four  " + fourRange[1]);
+        if (oneRange != null) {
+            if(oneRange[0] == oneRange[1]){
+                speedDecision = 1;
+            }
+            if( Math.abs(oneRange[0]) < Math.abs(oneRange[1]) ){
+                headDecision = oneRange[0];
+            }else{
+                headDecision = oneRange[1];
+            }
+        }
+        if(!isCom){  //最终操纵
+            pinRudder((float) (headDecision));
+            pinSpeed((long)speedDecision);
         }
         
     }
@@ -1020,7 +1033,13 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         float[][] ratios = new float[size][2];
         for(int n = 0; n < size; n++){
             ratios[n][0] = list.get(n).getFirst().ratio;
+            if(ratios[n][0] > 180){
+                ratios[n][0] -= 360;
+            }
             ratios[n][1] = list.get(n).getLast().ratio;
+            if(ratios[n][1] > 180){
+                ratios[n][1] -= 360;
+            }
         }
         
         return ratios;
@@ -1071,31 +1090,31 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     }
     public float finalRudder = 0;  //以后再说，打舵不能一下就到了
     //自动打舵，根据航向的偏差，设置舵角，与    setRudder()    不同
-    public void pinRudder(float dirCourse){  //只控制航向，不控制航迹 --- 相当于进行比例操舵
+    public void pinRudder(float diff){  //只控制航向，不控制航迹 --- 相当于进行比例操舵
         float ruddernow = this.rudderAngle;
         //根据航向的偏差以一定比例设置舵角
-        float div = dirCourse - this.head;
-        if (div > 180) {
-            div -= 360;  //变成负值
-        }else if(div < -180){
-            div += 360;
+        //float diff = dirCourse - this.head;
+        if (diff > 180) {
+            diff -= 360;  //变成负值
+        }else if(diff < -180){
+            diff += 360;
         }
-        if (div == 0) {
+        if (diff == 0) {
             setRudder(0);
-        } else if(div > 0){  //需要右舵
-            if (div < 30) {
-                setRudder(div/6);
-            }else if (div <90) {
-                setRudder(div/3);
-            }else if(div  > 90){
+        } else if(diff > 0){  //需要右舵
+            if (diff < 30) {
+                setRudder(diff/6);
+            }else if (diff <90) {
+                setRudder(diff/3);
+            }else if(diff  > 90){
                 setRudder(35);
             }
         } else{  //需要左舵角
-            if(div > -30){
-                setRudder(-div/6);
-            }else if(div > -90){
-                setRudder(-div/3);
-            }else if(div < -90){
+            if(diff > -30){
+                setRudder(-diff/6);
+            }else if(diff > -90){
+                setRudder(-diff/3);
+            }else if(diff < -90){
                 setRudder(-35);
             }
         }
@@ -1104,18 +1123,18 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             System.out.println("发生了突变");
         }
     }
-    public void pinSpeed(float dirSpeed){
+    public void pinSpeed(long rest){
         //取消，不用写这个方法，下面的加减速已经可以控制了
-        int rest = (int) ((dirSpeed - this.speed)/2);
+        //int rest = (int) ((dirSpeed - this.speed)/2);
         Thread pinspeed = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(1000 * rest);
+                    Thread.sleep(500 * rest);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(Navigator.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                Navigator.this.speed = dirSpeed;
+                Navigator.this.speed += rest;
             }
         });
         pinspeed.start();

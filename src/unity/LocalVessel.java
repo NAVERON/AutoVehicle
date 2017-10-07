@@ -28,7 +28,7 @@ public class LocalVessel implements Comparable<LocalVessel>{  //采用map映射�
         this.speed = speed;
     }
     
-    public float getSpeedX(){
+    public float getSpeedX(){  //向右 > 0，向左 < 0
         return (float) (Math.sin(Math.toRadians(head))*speed);
     }
     

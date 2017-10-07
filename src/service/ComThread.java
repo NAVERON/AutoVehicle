@@ -10,6 +10,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import navigator.Navigator;
 import environment.MessageType;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import navigator.Vessel;
@@ -67,6 +68,7 @@ public class ComThread extends Thread{
     }
     
     public boolean sendToSingle(String toId, String content){
+        navigator.isCom = true;
         boolean isOk = false;
         String fromId = navigator.getIdNumber();
         
@@ -82,9 +84,24 @@ public class ComThread extends Thread{
         
         return isOk;  //需要返回确认吗？应该不需要
     }
+    public boolean sendToSome(List<LocalVessel> some, String content){
+        navigator.isCom = true;
+        boolean isOk = false;
+        
+        for(Iterator<LocalVessel> items = some.iterator(); items.hasNext();){
+            ComServer.getInstance().addQueue(new MessageType(navigator.getIdNumber(), items.next().id, content));
+        }
+        if (ComServer.getInstance().isAlive()) {  //需要判断线程处理是否正在进行，如果存在，就不需要再次调用了
+            isOk = true;
+        }else{
+            ComServer.getInstance().start();  //处理这个发送信息，调用服务程序，处理信息表
+            isOk = true;
+        }
+        return isOk;
+    }
     
     public boolean sendToAll(String content){
-        
+        navigator.isCom = true;
         boolean isOk = false;
         String fromId = navigator.getIdNumber();
         
