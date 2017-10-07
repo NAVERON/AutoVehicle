@@ -530,6 +530,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         }
         if( !thegroup.isEmpty() ){  //取第一个作为判断标准
             Collections.sort(thegroup);  //升序
+            System.out.println("有人跟我一组");
             
             LocalVessel temp = thegroup.getFirst();
             double dcpa = calDCPA(the, temp);
@@ -556,18 +557,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         threeRange = new float[]{150F, 210F};
         fourRange = new float[]{210F, 330F};
         //下面分析   ================   这里有一个问题，如果做出了相同的决策，则下面不需要重新进行动作
-//        for(int n = 0; n < one.size(); n++){  //第一领域中   的第  n  个小组
-//            oneRange = calOne(oneDCPA[n], oneRange, onePole[n], one, n);
-//        }
-//        for(int n = 0; n < two.size(); n++){
-//            twoRange = calTwo(twoDCPA[n], twoRange, twoPole[n], two, n);
-//        }
-//        for(int n = 0; n < three.size(); n++){
-//            threeRange = calThree(threeDCPA[n], threeRange, threePole[n], three, n);
-//        }
-//        for(int n = 0; n < four.size(); n++){
-//            fourRange = calFour(fourDCPA[n], fourRange, fourPole[n], four, n);
-//        }
         oneRange = calRange(one, oneRange, oneDCPA, onePole);
         twoRange = calRange(two, twoRange, twoDCPA, twoPole);
         threeRange = calRange(three, threeRange, threeDCPA, threePole);
@@ -1077,6 +1066,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     public float finalRudder = 0;  //以后再说，打舵不能一下就到了
     //自动打舵，根据航向的偏差，设置舵角，与    setRudder()    不同
     public void pinRudder(float dirCourse){  //只控制航向，不控制航迹 --- 相当于进行比例操舵
+        float ruddernow = this.rudderAngle;
         //根据航向的偏差以一定比例设置舵角
         float div = dirCourse - this.head;
         if (div > 180) {
@@ -1102,6 +1092,10 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             }else if(div < -90){
                 setRudder(-35);
             }
+        }
+        
+        if(this.rudderAngle * ruddernow < -100){
+            System.out.println("发生了突变");
         }
     }
     public void pinSpeed(float dirSpeed){
