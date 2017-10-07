@@ -57,12 +57,14 @@ public class ComThread extends Thread{
                     break;
                 }
             }
-            if ( message.getContent().equals("port") ) {
-                //左舷
+            if ( message.getContent().equals("head") ) {
+                //船首过
                 navigator.pinRudder(get.ratio);
-            }else if( message.getContent().equals("starboard") ){
-                //右舷
+                sendToSingle(get.id, "agree");
+            }else if( message.getContent().equals("astern") ){
+                //船尾过
                 navigator.pinRudder(get.ratio);
+                sendToSingle(get.id, "agree");
             }
         }
     }

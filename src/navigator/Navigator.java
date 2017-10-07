@@ -577,15 +577,13 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         }
         //System.out.println(twoRange[0] + "  Second  " + twoRange[1]);
         //System.out.println(fourRange[0] + "  Four  " + fourRange[1]);
-        if (oneRange != null) {
-            if(oneRange[0] == oneRange[1]){
-                speedDecision = 1;
-            }
-            if( Math.abs(oneRange[0]) < Math.abs(oneRange[1]) ){
-                headDecision = oneRange[0];
-            }else{
-                headDecision = oneRange[1];
-            }
+        if(oneRange[0] == oneRange[1]){
+            speedDecision = 1;
+        }
+        if( Math.abs(oneRange[0]) < Math.abs(oneRange[1]) ){
+            headDecision = oneRange[0];
+        }else{
+            headDecision = oneRange[1];
         }
         if(!isCom){  //最终操纵
             pinRudder((float) (headDecision));
