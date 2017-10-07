@@ -56,17 +56,17 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     private int beam = 2;  //宽度
     private char type = 'a';  //标志是普通航行器，还是船舶类型的，更改了原先的意义(以前是表示船舶类型的变量的)
     //标志航行器类型的变量    a表示航行器    b表示船舶对象
-    /////////////////////////---静态属性存储结束---////////////////////////
+    /////////////////////////---静态属性存储结束---动态开始---////////////////////////
     private float head = 0;  //这里存储的信息相当于临时的变化，每次变化后new 一个动态数据
     private float course = 0;  //然后存储到链表中
     private float speed = 0;
-    private float latitude = 0;
-    private float longitude = 0;
+    private float latitude = 0;  //y
+    private float longitude = 0;  //x
     private char state = '0';   //-----状态标识符，使用数字字符标识，10种状态
     private String updateTime;
     private float rudderAngle = 0;
     /*显示操纵过程中的动态变化*/
-    private float rotateRate = 0.0F;  //转角速度----------暂时不用
+    //private float rotateRate = 0.0F;  //转角速度----------暂时不用
     /////////////////////////////---动态存储区结束---/////////////////////////////
     
     public static int idIndex = 0;  //默认id号的索引
@@ -92,9 +92,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         comThread = new ComThread(this);  //专门处理通信的对象
         option = new Option(this);  //操纵线程
     }
-    public void setColor(String color){
-        this.setStyle("-fx-background-color : "+color+";");
-    }
     
     //获取航行器属性的方法------开始
     public String getName(){
@@ -104,7 +101,13 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         return this.idNumber;
     }
     public float getHead(){
-        return this.head;
+        float geted = this.head;
+        if(geted >= 360){
+            geted -= 360;
+        }else if(geted < 0){
+            geted += 360;
+        }
+        return geted;
     }
     public float getSpeed(){
         return this.speed;
@@ -132,11 +135,10 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     }
     //获取属性方法-------结束
     
-    /*------------------------------------**********************************Go-AND-Test*********************************/
+    /***********************************Go-AND-Test*********************************/
     public List<Vessel> otherNavs = new LinkedList<>();  //存储通信范围内的对象
     public List<LocalVessel> locals = new LinkedList<>();  //存储转换信息
     public float[] oneRange, twoRange, threeRange, fourRange;  //四个领域的可行范围
-    
     //分组后的组存储
     ArrayList<LinkedList<LocalVessel>> one;
     ArrayList<LinkedList<LocalVessel>> two;
@@ -144,13 +146,12 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     ArrayList<LinkedList<LocalVessel>> four;
     
     //下面记录速度和角度的偏差
-    public int lastDecision = 0;  //记录上次的操纵----1表示右舷，0表示保持，-1表示左舷转向      7.18----->正向右，负向左
-    public float nowDecision = 0;  //可能用不到----记录本次的决定    与之相同，正负号表示左右方向，带有大小
-    public float speedDecision = 0;  //速度决定
-    private float originHead, originSpeed;
+    private double originHead, originSpeed;
     public Point2D destination;  //目标地
-    public double finalHead;  //需要去的航向
-    public double finalSpeed;  //最终速度
+    public int lastHeadDecision = 0;  //记录上次的操纵----1表示右舷，0表示保持，-1表示左舷转向      7.18----->正向右，负向左
+    public float lastSpeedDecision = 0;  //可能用不到----记录本次的决定    与之相同，正负号表示左右方向，带有大小
+    public double headDecision;  //现在需要去的航向
+    public double speedDecision;  //现在最终速度
     /*============================================特殊区域======================================================*/
     public void analyse(){  //分析当前形式
         otherNavs.clear();  //清空上次计算的 --- 思考如何能够减少这种重复遍历的计算
@@ -166,7 +167,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             if ( Math.abs(this.getPosition().getX()-next.getPosition().getX()) < radius  //经度代表x坐标
                     && Math.abs(this.getPosition().getY() - next.getPosition().getY()) < radius ) {  //纬度是y坐标
                 otherNavs.add(next);  //添加的是指向引用
-                isDanger = true;
             }
         }
         if ( !isDanger) {  //如果周围没有其他对象，则没必要进行下面的计算 ---2017.10.1如果没有危险，就复航
@@ -174,9 +174,9 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 isDanger = false;
             }
             //开始复航
-            finalHead = calAngle(destination.getX()-longitude, destination.getY()-latitude);
-            System.out.println(this.idNumber +" : "+ this.head + "复航方向 : " + finalHead);
-            pinRudder((float) finalHead);
+            headDecision = calAngle(destination.getX()-longitude, destination.getY()-latitude);
+            System.out.println(this.idNumber +" : "+ this.head + "复航方向 : " + headDecision);
+            pinRudder((float) headDecision);
             
             return;
         }
@@ -954,22 +954,21 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             }
             alpha = Math.toRadians(alpha);
             DCPA[n][0] = Math.sin(alpha)*dis;
-//            if (this.idNumber.equals("12")) {
-//                System.out.print("First:In getPoleDCPA method   ");
-//                if (DCPA[n][0] > 0) {
-//                    System.out.println(first.id + "==过船首");
-//                }else if (DCPA[n][0] < 0) {
-//                    System.out.println(first.id + "==过船尾");
-//                }else{
-//                    System.out.println("要撞了......");
-//                }
-//                
-//            }
-            
-//            if (this.idNumber.equals("12")) {
-//                System.out.println(this.idNumber + " =111= 距离："+dis + "  矢量和角度："+rh+"  真方位角度"+th + "  求得的夹角 ："+alpha);
-//                System.out.println("第一个极点DCPA："+DCPA[n][0]);
-//            }
+            if (this.idNumber.equals("12")) {
+                System.out.print("First:In getPoleDCPA method   ");
+                if (DCPA[n][0] > 0) {
+                    System.out.println(first.id + "==过船首");
+                }else if (DCPA[n][0] < 0) {
+                    System.out.println(first.id + "==过船尾");
+                }else{
+                    System.out.println("要撞了......");
+                }
+                
+            }
+            if (this.idNumber.equals("12")) {
+                System.out.println(this.idNumber + " =111= 距离："+dis + "  矢量和角度："+rh+"  真方位角度"+th + "  求得的夹角 ："+alpha);
+                System.out.println("第一个极点DCPA："+DCPA[n][0]);
+            }
             //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//============================
             //计算另一个极值点
             dis = Math.sqrt(last.longitude*last.longitude + last.latitude*last.latitude);
@@ -1010,6 +1009,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         }
         alpha = Math.toRadians(alpha);
         DCPA = Math.sin(alpha)*dis;
+        System.out.println("在calDCPA中计算出来的最小距离DCPA : " + DCPA);
         
         return DCPA;
     }
@@ -1033,7 +1033,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     private boolean isTurning = false;  //是否正在转向？
     private boolean isSpeeding = false;  //是否正在变速
     
-    //public HashMap<String, LinkedList<Double>> dis = new HashMap<>();
     @Override
     public void goAhead(){
         analyse();
@@ -1060,22 +1059,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         this.setRotate(head - 90);
         //System.out.println(this.idNumber + "=航向："+this.head + "  舵角"+this.rudderAngle);
         addDynInfo( new DynInfo(head, course, speed, longitude, latitude, state, new Date(), rudderAngle) );
-        
-//        if(this.idNumber.equals("12")){
-//            for(int i = 0; i < AutoNavVehicle.navigators.size(); i++){
-//                Vessel temp = AutoNavVehicle.navigators.get(i);
-//                Iterator items = dis.entrySet().iterator();
-//                while(items.hasNext()){
-//                    Map.Entry entry = (Map.Entry) items.next();
-//                    if(temp.getIdNumber().equals(entry.getKey())){
-//                        double distance = this.getPosition().distance(temp.getPosition());
-//                        LinkedList<Double> link = (LinkedList<Double>) entry.getValue();
-//                        link.add(distance);
-//                    }
-//                }
-//            }
-//        }
-
         
     }
     @Override
@@ -1115,7 +1098,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     public void pinSpeed(float dirSpeed){
         //取消，不用写这个方法，下面的加减速已经可以控制了
         int rest = (int) ((dirSpeed - this.speed)/2);
-        new Thread(new Runnable() {
+        Thread pinspeed = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -1125,19 +1108,11 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 }
                 Navigator.this.speed = dirSpeed;
             }
-        }).start();
+        });
+        pinspeed.start();
     }
     @Override
     public void turnTo(int desDir) {  //太慢了，怎么解决 --- 使用setrudder人工调节--->pinRudder
-        //转向 dirdiff 方向角度--->涉及到角度的变化，并设置舵角
-//        float a = kp*(1+1/ki+kd);
-//        float b = kp*(1+2*kd);
-//        float c = kp*kd;
-        //对数如的目标角度进行判断预处理 ---- desDir <360
-        
-//        if(isTurning){  //如果正在转向，则终止
-//            isTurning = !isTurning;
-//        }
         curDiff = desDir - head;
         if (curDiff > 180) {
             curDiff -= 360;
@@ -1245,7 +1220,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 }
             }
         ).start();
-        System.out.println("navigator.Navigator.accelerate()");
     }
     @Override
     public void decelerate(float toSpeed) {
@@ -1264,7 +1238,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 }
             }
         ).start();
-        System.out.println("navigator.Navigator.decelerate()");
     }
     @Override
     public void stop(){
@@ -1275,7 +1248,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                     while (speed>0) {
                         speed -= 2;
                         try {
-                            Thread.sleep(1000);
+                            Thread.sleep(500);
                         } catch (InterruptedException ex) {
                             Logger.getLogger(Navigator.class.getName()).log(Level.SEVERE, null, ex);
                         }
@@ -1283,7 +1256,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 }
             }
         ).start();
-        System.out.println("减速线程启动");
     }
     
     ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1476,7 +1448,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         if (angle < 0) {
             angle += 360;
         }
-        System.out.println("calAngle : " + angle);
         return angle;
     }
 }
