@@ -110,6 +110,9 @@ public class Vessel extends Navigator {  //水上航行器,具体的类，根据
         this.expTime = expTime;
     }
     
+    public void setColor(String color){
+        this.setStyle("-fx-background-color : "+color+";");
+    }
     public void setDestination(Point2D point){
         super.destination = point;
     }

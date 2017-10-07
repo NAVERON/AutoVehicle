@@ -150,8 +150,8 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     public Point2D destination;  //目标地
     public int lastHeadDecision = 0;  //记录上次的操纵----1表示右舷，0表示保持，-1表示左舷转向      7.18----->正向右，负向左
     public float lastSpeedDecision = 0;  //可能用不到----记录本次的决定    与之相同，正负号表示左右方向，带有大小
-    public double headDecision;  //现在需要去的航向
-    public double speedDecision;  //现在最终速度
+    public double headDecision = 0;  //现在需要去的航向
+    public double speedDecision = 0;  //现在最终速度
     /*============================================特殊区域======================================================*/
     public void analyse(){  //分析当前形式
         otherNavs.clear();  //清空上次计算的 --- 思考如何能够减少这种重复遍历的计算
@@ -169,17 +169,8 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 otherNavs.add(next);  //添加的是指向引用
             }
         }
-        if ( !isDanger) {  //如果周围没有其他对象，则没必要进行下面的计算 ---2017.10.1如果没有危险，就复航
-            if(otherNavs.isEmpty()){
-                isDanger = false;
-            }
-            //开始复航
-            headDecision = calAngle(destination.getX()-longitude, destination.getY()-latitude);
-            System.out.println(this.idNumber +" : "+ this.head + "复航方向 : " + headDecision);
-            pinRudder((float) headDecision);
-            
-            return;
-        }
+        //如果周围没有其他对象，则没必要进行下面的计算 ---2017.10.1如果没有危险，就复航
+        if(otherNavs.isEmpty()){ isDanger = false; return; }
         //添加完成，下面进行分析------------------------------------------------------------------
         //先进行坐标转换行不行呢？
         //------------ 坐标转换 ---------------------需要临时存储，具体参看链接：http://blog.csdn.net/can3981132/article/details/52518833
@@ -233,10 +224,10 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             if (getLocalVessel.ratio > 210 && getLocalVessel.ratio < 330) {
                 part4.add(getLocalVessel);
             }
-            //TEST
-//            if(this.idNumber.equals("12")){
-//                System.out.println(local.toString());
-//            }
+        }
+        if(part1.isEmpty() && part2.isEmpty() && part4.isEmpty()){  //如果正前方和左右没有其他船舶，则复航
+            voyageReturn();  //准备恢复航线
+            return;
         }
         //这里转换成负数，方便后边排序计算-----part1---根据ratio排序
         for(int g = 0; g < part1.size(); g++){  //只需要对第一个进行特殊处理
@@ -1440,7 +1431,11 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     public String toString() {
         return "Navigator{" + "idNumber=" + idNumber + ", name=" + name + ", navLength=" + navLength + ", beam=" + beam + ", head=" + head + ", course=" + course + ", speed=" + speed + ", latitude=" + latitude + ", longitude=" + longitude + '}';
     }
-    
+    public void voyageReturn(){
+        headDecision = calAngle(destination.getX() - longitude, destination.getY() - latitude);
+        System.out.println(this.idNumber + " : " + this.head + "复航方向 : " + headDecision);
+        pinRudder((float) headDecision);
+    }
     public double calAngle(double dx, double dy) {  //向上是0度角，顺时针旋转
         double theta = Math.atan2(dy, dx);
         theta += Math.PI/2;
@@ -1450,4 +1445,5 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         }
         return angle;
     }
+    
 }
