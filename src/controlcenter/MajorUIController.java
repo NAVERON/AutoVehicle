@@ -183,6 +183,7 @@ public class MajorUIController implements Initializable {
         for(Iterator<Vessel> items = AutoNavVehicle.navigators.iterator();items.hasNext();){
             showPane.getChildren().remove(items.next());
         }
+        showPane.getChildren().remove(circle);
         tempVessel = null;
         AutoNavVehicle.navigators.clear();
         navigatorsList.getItems().clear();  //清除列表的记录
@@ -307,7 +308,8 @@ public class MajorUIController implements Initializable {
             chartupdate = new chartUpdate(this.currentNavigator);
             chartupdate.start();
             
-            showPane.getChildren().add( new Circle(tempVessel.getDestination().getX(), tempVessel.getDestination().getY(), 5, Color.BLUE) );
+            circle = new Circle(tempVessel.getDestination().getX(), tempVessel.getDestination().getY(), 5, Color.BLUE);
+            showPane.getChildren().add( circle );
         }
         //还原为空值
         System.out.println(tempVessel.toString());
@@ -316,7 +318,7 @@ public class MajorUIController implements Initializable {
         //最后需要加入清空输入信息的操作     ----  2017.6.28 cancle
         
     }
-    
+    Circle circle;  //目标点
     /********折线图的动态显示*****************************************/
     
     @FXML private NumberAxis xAxis, yAxis;

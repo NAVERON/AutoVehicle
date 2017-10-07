@@ -528,23 +528,26 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 thegroup.add(temp);
             }
         }
-        if(!thegroup.isEmpty()){
+        if( !thegroup.isEmpty() ){  //取第一个作为判断标准
             Collections.sort(thegroup);  //升序
-            loop:
-            for(int g = 0; g < thegroup.size(); g++){
-                LocalVessel temp = thegroup.get(g);
-                double dcpa = calDCPA(the, temp);
-                if(Math.abs(dcpa) < 20){
-                    isDanger = true;
-                    if(temp.ratio > -30 && temp.ratio < 30){
-                        this.speed = temp.speed;
-                        pinRudder(temp.head);
-                        break loop;
-                    }
+            
+            LocalVessel temp = thegroup.getFirst();
+            double dcpa = calDCPA(the, temp);
+            if (Math.abs(dcpa) < 20) {
+                isDanger = true;
+                if ((temp.ratio > -30 && temp.ratio < 90) || (temp.ratio > 270 && temp.ratio < 330)) {  //跟随状态
+                    this.speed = temp.speed;
+                    pinRudder(temp.head);
                 }else{
                     isDanger = false;
+                    voyageReturn();
                 }
+            } else {
+                isDanger = false;
+                voyageReturn();
             }
+            
+            return;
         }
         //得到极值点之后怎么办？分析可以直接操舵了
         /*一共分成四个领域*/
@@ -941,7 +944,15 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         }
         alpha = Math.toRadians(alpha);
         DCPA = Math.sin(alpha)*dis;
-        System.out.println("在calDCPA中计算出来的最小距离DCPA : " + DCPA);
+        if (this.idNumber.equals("12")) {
+            if (DCPA > 20) {
+                System.out.println(vessel.id + "==过船首");
+            } else if (DCPA < -20) {
+                System.out.println(vessel.id + "==过船尾");
+            } else {
+                System.out.println("要撞了......");
+            }
+        }
         
         return DCPA;
     }
@@ -974,17 +985,16 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             }
             alpha = Math.toRadians(alpha);
             DCPA[n][0] = Math.sin(alpha)*dis;
-            if (this.idNumber.equals("12")) {
-//                System.out.print("First:In getPoleDCPA method   ");
-                if (DCPA[n][0] > 10) {
-                    System.out.println(first.id + "==过船首");
-                }else if (DCPA[n][0] < -10) {
-                    System.out.println(first.id + "==过船尾");
-                }else{
-                    System.out.println("要撞了......");
-                }
-                
-            }
+//            if (this.idNumber.equals("12")) {
+////                System.out.print("First:In getPoleDCPA method   ");
+//                if (DCPA[n][0] > 10) {
+//                    System.out.println(first.id + "==过船首");
+//                }else if (DCPA[n][0] < -10) {
+//                    System.out.println(first.id + "==过船尾");
+//                }else{
+//                    System.out.println("要撞了......");
+//                }
+//            }
 //            if (this.idNumber.equals("12")) {
 //                System.out.println(this.idNumber + " =111= 距离："+dis + "  矢量和角度："+rh+"  真方位角度"+th + "  求得的夹角 ："+alpha);
 //                System.out.println("第一个极点DCPA："+DCPA[n][0]);
@@ -1057,7 +1067,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         this.setRotate(head - 90);
         //System.out.println(this.idNumber + "=航向："+this.head + "  舵角"+this.rudderAngle);
         addDynInfo( new DynInfo(head, course, speed, longitude, latitude, state, new Date(), rudderAngle) );
-        
+        System.out.println(this.idNumber + "现在的舵角是 : " + this.rudderAngle);
     }
     @Override
     public void setRudder(float rudderAngle){
