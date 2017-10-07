@@ -531,18 +531,21 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 dh = 360 - dh;
             }
             double d = Math.sqrt(dx * dx + dy * dy + dh * dh);
-            if(d <= 50){  //需要进一步的判断
+            if(d <= 100){  //需要进一步的判断
                 thegroup.add(temp);
             }
         }
         if( !thegroup.isEmpty() ){  //取第一个作为判断标准
             Collections.sort(thegroup);  //升序
-            if(this.idNumber.equals("12")){
-                System.out.println(this.idNumber + ":有人跟我一组" + thegroup.toString());
-            }
             LocalVessel temp = thegroup.getFirst();
             double dcpa = calDCPA(the, temp);
-            if (dcpa < 20) {  //两个条件，存在危险，前方或者平行地方有障碍物
+            
+            if(this.idNumber.equals("12")){
+                System.out.println(this.idNumber + ":有人跟我一组" + thegroup.toString());
+                System.out.println(this.idNumber + ": DCPA计算 " + dcpa);
+            }
+            
+            if (Math.abs(dcpa) < 20) {  //两个条件，存在危险，前方或者平行地方有障碍物
                 isDanger = true;
                 if ((temp.ratio > -30 && temp.ratio < 90) || (temp.ratio > 270 && temp.ratio < 330)) {  //跟随状态
                     this.speed = temp.speed;
@@ -940,15 +943,15 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         }
         alpha = Math.toRadians(alpha);
         DCPA = Math.sin(alpha)*dis;
-        if (this.idNumber.equals("12")) {
-            if (DCPA > 20) {
-                System.out.println(vessel.id + "==过船首");
-            } else if (DCPA < -20) {
-                System.out.println(vessel.id + "==过船尾");
-            } else {
-                System.out.println("要撞了......");
-            }
-        }
+//        if (this.idNumber.equals("12")) {
+//            if (DCPA > 20) {
+//                System.out.println(vessel.id + "==过船首");
+//            } else if (DCPA < -20) {
+//                System.out.println(vessel.id + "==过船尾");
+//            } else {
+//                System.out.println("要撞了......");
+//            }
+//        }
         
         return DCPA;
     }
@@ -1458,7 +1461,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         lastHeadDecision = headDecision;
         
         headDecision = calAngle(destination.getX() - this.longitude, destination.getY() - this.latitude);
-        System.out.println(this.idNumber + " : " + this.head + "复航方向 : " + headDecision);
+        //System.out.println(this.idNumber + " : " + this.head + "复航方向 : " + headDecision);
         pinRudder((float) headDecision);
     }
     public double calAngle(double dx, double dy) {  //向上是0度角，顺时针旋转
