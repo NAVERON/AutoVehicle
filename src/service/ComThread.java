@@ -84,10 +84,11 @@ public class ComThread extends Thread{
     }
     
     public boolean sendToAll(String content){
+        
         boolean isOk = false;
         String fromId = navigator.getIdNumber();
         
-        for(Iterator<Vessel> items = AutoNavVehicle.navigators.iterator();items.hasNext();){
+        for(Iterator<Vessel> items = navigator.getOthers().iterator();items.hasNext();){
             Vessel next = items.next();
             if ( ! next.getIdNumber().equals(navigator.getIdNumber()) ) {
                 ComServer.getInstance().addQueue(new MessageType(fromId, next.getIdNumber(), content));

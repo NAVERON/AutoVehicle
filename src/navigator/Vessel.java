@@ -5,6 +5,7 @@
  */
 package navigator;
 
+import controlcenter.AutoNavVehicle;
 import java.util.ArrayList;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
@@ -66,10 +67,12 @@ public class Vessel extends Navigator {  //水上航行器,具体的类，根据
                 if (event.getButton()==MouseButton.SECONDARY) {  //右键输出本航行器信息
                     //Vessel.this.setRudder(Vessel.this.getRudderAngle() + 2);
                     System.out.println( Vessel.this.getName()
-                            +"\nposition-->x :    "+Vessel.this.getPosition().getX()+"    y :     "+Vessel.this.getPosition().getY()
+                            //+"\nposition-->x :    "+Vessel.this.getPosition().getX()+"    y :     "+Vessel.this.getPosition().getY()
                             +"\nspeed  :   "+Vessel.this.getSpeed()
-                            + "\nrudder : ============================="+Vessel.this.getRudderAngle()
+                            +"\nhead : " + Vessel.this.getHead()
+                            + "\nrudder : ========"+Vessel.this.getRudderAngle()
                     );
+                    //AutoNavVehicle.pause = true;
                 }
                 else if(event.getButton()==MouseButton.PRIMARY){  //左舵-2， 读取本航行器存储的信息
                     //Vessel.this.setRudder(Vessel.this.getRudderAngle()-2);

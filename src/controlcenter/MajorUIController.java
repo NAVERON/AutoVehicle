@@ -184,11 +184,12 @@ public class MajorUIController implements Initializable {
             showPane.getChildren().remove(items.next());
         }
         showPane.getChildren().remove(circle);
+        
         tempVessel = null;
         AutoNavVehicle.navigators.clear();
         navigatorsList.getItems().clear();  //清除列表的记录
         this.currentNavigator = null;
-        if (chartupdate.isAlive()) {
+        if (chartupdate != null && chartupdate.isAlive()) {
             chartupdate.setCurNavigator(null);
         }
         chartupdate = null;  //结束这个线程

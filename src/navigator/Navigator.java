@@ -148,10 +148,14 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     //下面记录速度和角度的偏差
     private double originHead, originSpeed;
     public Point2D destination;  //目标地
-    public int lastHeadDecision = 0;  //记录上次的操纵----1表示右舷，0表示保持，-1表示左舷转向      7.18----->正向右，负向左
-    public float lastSpeedDecision = 0;  //可能用不到----记录本次的决定    与之相同，正负号表示左右方向，带有大小
+    public double lastHeadDecision = 0;  //记录上次的操纵----1表示右舷，0表示保持，-1表示左舷转向      7.18----->正向右，负向左
+    public double lastSpeedDecision = 0;  //可能用不到----记录本次的决定    与之相同，正负号表示左右方向，带有大小
     public double headDecision = 0;  //现在需要去的航向
     public double speedDecision = 0;  //现在最终速度
+    
+    public double comHeadDecision = 0;
+    public double comSpeedDecision = 0;
+    public boolean isCom = false;  //现在是否使用通信决策
     /*============================================特殊区域======================================================*/
     public void analyse(){  //分析当前形式
         otherNavs.clear();  //清空上次计算的 --- 思考如何能够减少这种重复遍历的计算
@@ -518,36 +522,39 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         //判断本航行器属于哪个组？   //虚拟一个本地对象
         LocalVessel the = new LocalVessel(this.idNumber, 0, 0, 0, this.speed);  //如果分析之后周边不会有危险，则恢复航线
         LinkedList<LocalVessel> thegroup = new LinkedList<>();
-        for(int index = 0; index < locals.size(); index++){
+        for(int index = 0; index < locals.size(); index++){  //只找直接关系的，也行，因为同组之间存在传递关系
             LocalVessel temp = locals.get(index);
             float dx = temp.longitude;
             float dy = temp.latitude;
             float dh = temp.head;
+            if(dh > 180){
+                dh = 360 - dh;
+            }
             double d = Math.sqrt(dx * dx + dy * dy + dh * dh);
-            if(d <= 100){  //需要进一步的判断
+            if(d <= 50){  //需要进一步的判断
                 thegroup.add(temp);
             }
         }
         if( !thegroup.isEmpty() ){  //取第一个作为判断标准
             Collections.sort(thegroup);  //升序
-            System.out.println("有人跟我一组");
-            
+            if(this.idNumber.equals("12")){
+                System.out.println(this.idNumber + ":有人跟我一组" + thegroup.toString());
+            }
             LocalVessel temp = thegroup.getFirst();
             double dcpa = calDCPA(the, temp);
-            if (Math.abs(dcpa) < 20) {
+            if (dcpa < 20) {  //两个条件，存在危险，前方或者平行地方有障碍物
                 isDanger = true;
                 if ((temp.ratio > -30 && temp.ratio < 90) || (temp.ratio > 270 && temp.ratio < 330)) {  //跟随状态
                     this.speed = temp.speed;
                     pinRudder(temp.head);
-                }else{
+                }else{  //虽然有危险，但是我是领头的，我就按照航路行驶
                     isDanger = false;
                     voyageReturn();
                 }
-            } else {
+            } else {  //不存在危险就按照航路行驶
                 isDanger = false;
                 voyageReturn();
             }
-            
             return;
         }
         //得到极值点之后怎么办？分析可以直接操舵了
@@ -1056,7 +1063,8 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         this.setRotate(head - 90);
         //System.out.println(this.idNumber + "=航向："+this.head + "  舵角"+this.rudderAngle);
         addDynInfo( new DynInfo(head, course, speed, longitude, latitude, state, new Date(), rudderAngle) );
-        System.out.println(this.idNumber + "现在的舵角是 : " + this.rudderAngle);
+        //System.out.println(this.idNumber + "现在的舵角是 : " + this.rudderAngle);
+        //System.out.println(this.idNumber + "航向 : " + this.head);
     }
     @Override
     public void setRudder(float rudderAngle){
@@ -1298,6 +1306,9 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         comThread.sendToAll(content);
         System.out.println("向所有航行器发送消息，开始协商程序");
     }
+    public List<Vessel> getOthers(){
+        return this.otherNavs;
+    }
     /************************在单独的线程类中可以处理***********************************/
     //--------------------------通信方法部分 结束
     
@@ -1444,8 +1455,10 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         return "Navigator{" + "idNumber=" + idNumber + ", name=" + name + ", navLength=" + navLength + ", beam=" + beam + ", head=" + head + ", course=" + course + ", speed=" + speed + ", latitude=" + latitude + ", longitude=" + longitude + '}';
     }
     public void voyageReturn(){
-        headDecision = calAngle(destination.getX() - longitude, destination.getY() - latitude);
-        //System.out.println(this.idNumber + " : " + this.head + "复航方向 : " + headDecision);
+        lastHeadDecision = headDecision;
+        
+        headDecision = calAngle(destination.getX() - this.longitude, destination.getY() - this.latitude);
+        System.out.println(this.idNumber + " : " + this.head + "复航方向 : " + headDecision);
         pinRudder((float) headDecision);
     }
     public double calAngle(double dx, double dy) {  //向上是0度角，顺时针旋转
