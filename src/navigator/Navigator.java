@@ -230,6 +230,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         }
         if(part1.isEmpty() && part2.isEmpty() && part4.isEmpty() && !isDanger){  //如果正前方和左右没有其他船舶，则复航
             voyageReturn();  //准备恢复航线
+            isCom = false;
             return;
         }
         //这里转换成负数，方便后边排序计算-----part1---根据ratio排序
@@ -550,15 +551,10 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 if ((temp.ratio > -30 && temp.ratio < 90) || (temp.ratio > 270 && temp.ratio < 330)) {  //跟随状态
                     this.speed = temp.speed;
                     pinRudder(temp.head);
-                }else{  //虽然有危险，但是我是领头的，我就按照航路行驶
-                    isDanger = false;
-                    voyageReturn();
+                    isDanger = true;
+                    return;
                 }
-            } else {  //不存在危险就按照航路行驶
-                isDanger = false;
-                voyageReturn();
             }
-            return;
         }
         //得到极值点之后怎么办？分析可以直接操舵了
         /*一共分成四个领域*/
@@ -572,14 +568,15 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         threeRange = calRange(three, threeRange, threeDCPA, threePole);
         fourRange = calRange(four, fourRange, fourDCPA, fourPole);
 //        System.out.println( this.idNumber + " 目标航向 : "+(oneRange[0] + oneRange[1])/2);
+//这里的Range表示的是角度的相对值，需要加上原坐标系的值
         if(oneRange != null){
-            pinRudder( (oneRange[0] + oneRange[1])/2 );
+            pinRudder(oneRange[0]);
         }else if(twoRange != null){
             pinRudder( (twoRange[0] + twoRange[1])/2 );
         }else if(threeRange != null){
-            pinRudder( (threeRange[0] + threeRange[1])/2 );
+            //需要通信协商
         }else if(fourRange != null){
-            pinRudder( (fourRange[0] + fourRange[1])/2 );
+            pinRudder(fourRange[1]);
         }
         
     }
@@ -889,36 +886,34 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     double[][] oneDCPA, twoDCPA, threeDCPA, fourDCPA;
     float[][] onePole, twoPole, threePole, fourPole;
     public float[] calRange(List<LinkedList<LocalVessel>> list, float[] curRange, double[][] DCPA, float[][] Pole){  //分别计算区域的最终方向
-        if(list.size() == 1){
-            if(DCPA[0][0]*DCPA[0][1] < 0){
-                curRange[0] = Pole[0][1];
-            }
-        }
-        for(int i = 0; i < list.size()-1; i++){
+        for(int i = 0; i < list.size(); i++){
             LocalVessel temp1 = list.get(i).getFirst();
-            LocalVessel temp2 = list.get(i+1).getFirst();
-            //判断离散状态
-            if((temp1.longitude - temp2.longitude)*(temp1.getSpeedX() - temp2.getSpeedX())< 0){
-                //聚合趋势
-                if(DCPA[i][0] > DCPA[i+1][0]){
-                    //走i+1侧
-                    curRange[0] = Pole[i+1][1];
-                }else{
-                    curRange[1] = Pole[i][0];
-                }
-            }else if((temp1.longitude - temp2.longitude)*(temp1.getSpeedX() - temp2.getSpeedX()) > 0){
-                //离散趋势
-                if(Math.abs(DCPA[i][0]) > 30){
-                    curRange[0] = (Pole[i][1] + Pole[i+1][0])/2;
-                    curRange[1] = (Pole[i][1] + Pole[i+1][0])/2;
-                }
-            }else if((temp1.longitude - temp2.longitude)*(temp1.getSpeedX()*temp2.getSpeedX()) > 0){
-                //同向趋势
-                if(temp1.getSpeedX() > 0){
-                    //向右趋势，我向左转
-                    if(DCPA[i][0] < 30){
+            LocalVessel temp2 = list.get(i).getLast();
+            //先判断大体的方位
+            float px = (temp1.longitude + temp2.longitude)/2;
+            if( px <= 0){
+                //在左舷
+                if(DCPA[i][1] >= 0){
+                    if(temp2.getSpeedX() >= 0){
                         curRange[1] = Pole[i][0];
+                        return curRange;
+                    }else{
+                        curRange[0] = Pole[i][1];
                     }
+                }else if(DCPA[i][1] < 0){
+                    curRange[0] = 0;
+                }
+            }else if(px > 0){
+                //在右舷
+                if(DCPA[i][0] > 0){
+                    if(temp1.getSpeedX() >= 0){
+                        curRange[1] = Pole[i][0];
+                        return curRange;
+                    }else{
+                        curRange[0] = Pole[i][1];
+                    }
+                }else if(DCPA[i][0] <=0 ){
+                    curRange[1] = 0;
                 }
             }
         }
@@ -1311,6 +1306,9 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     }
     public List<Vessel> getOthers(){
         return this.otherNavs;
+    }
+    public List<LocalVessel> getLocals(){
+        return this.locals;
     }
     /************************在单独的线程类中可以处理***********************************/
     //--------------------------通信方法部分 结束
