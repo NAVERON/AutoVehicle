@@ -486,9 +486,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         //对第一个区间的需要进行变换，否则排序不能正常 --------这部分放在了前面
         for(int n = 0; n < one.size(); n++){  //每一个分组，角度从小到大
             Collections.sort(one.get(n));
-            if(this.idNumber.equals("12")){
-                System.out.println(one.get(n).toString());
-            }
         }
         for(int n = 0; n < two.size(); n++){
             Collections.sort(two.get(n));
@@ -519,25 +516,33 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         fourPole = getPoleRatio(four);
         
         //判断本航行器属于哪个组？   //虚拟一个本地对象
-        LocalVessel the = new LocalVessel();
-        for (int index = 0; index < one.size(); index++) {
-            for(int in = 0; in < one.get(index).size(); in++){
-                LocalVessel localvessel = one.get(index).get(in);
-            
-                float dx = localvessel.longitude - this.longitude;
-                float dy = localvessel.latitude - this.latitude;
-                float dh = localvessel.head;
-                double d = Math.sqrt(dx * dx + dy * dy + dh * dh);
-                if (d <= 100) {
-                    System.out.println("本航行器属于分组 : " + localvessel.id);
-                    double dcpa = calDCPA(the, localvessel);
-                    if(Math.abs(dcpa) < 20){
-                        pinRudder(localvessel.head);
-                        isDanger = true;
-                    }else{
-                        isDanger = false;
+        LocalVessel the = new LocalVessel(this.idNumber, 0, 0, 0, this.speed);  //如果分析之后周边不会有危险，则恢复航线
+        LinkedList<LocalVessel> thegroup = new LinkedList<>();
+        for(int index = 0; index < locals.size(); index++){
+            LocalVessel temp = locals.get(index);
+            float dx = temp.longitude;
+            float dy = temp.latitude;
+            float dh = temp.head;
+            double d = Math.sqrt(dx * dx + dy * dy + dh * dh);
+            if(d <= 100){  //需要进一步的判断
+                thegroup.add(temp);
+            }
+        }
+        if(!thegroup.isEmpty()){
+            Collections.sort(thegroup);  //升序
+            loop:
+            for(int g = 0; g < thegroup.size(); g++){
+                LocalVessel temp = thegroup.get(g);
+                double dcpa = calDCPA(the, temp);
+                if(Math.abs(dcpa) < 20){
+                    isDanger = true;
+                    if(temp.ratio > -30 && temp.ratio < 30){
+                        this.speed = temp.speed;
+                        pinRudder(temp.head);
+                        break loop;
                     }
-                    return;
+                }else{
+                    isDanger = false;
                 }
             }
         }
@@ -918,6 +923,28 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         
         return curRange;
     }
+    public double calDCPA(LocalVessel the, LocalVessel vessel){
+        double DCPA;
+        double dis = Math.sqrt(vessel.longitude*vessel.longitude + vessel.latitude*vessel.latitude);
+        //计算矢量和角度
+        float rx = (float) ( vessel.speed*Math.sin(Math.toRadians(vessel.head)) );
+        float ry = (float) ( vessel.speed*Math.cos(Math.toRadians(vessel.head)) - the.speed );
+        float rh = getRatio2(rx, ry);  //矢量和的角度
+        //真方位角度
+        double th = 180 + vessel.ratio;
+        while(th>=360){  //保证范围在0-360之间
+            th -=360;
+        }
+        double alpha = rh-th;
+        if (th<180) {
+            alpha = -alpha;
+        }
+        alpha = Math.toRadians(alpha);
+        DCPA = Math.sin(alpha)*dis;
+        System.out.println("在calDCPA中计算出来的最小距离DCPA : " + DCPA);
+        
+        return DCPA;
+    }
     
     public double[][] getPoleDCPA( List<LinkedList<LocalVessel>> list ){  //DCPA最小30，是观测得到的，没有计算
         int size = list.size();
@@ -949,9 +976,9 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             DCPA[n][0] = Math.sin(alpha)*dis;
             if (this.idNumber.equals("12")) {
 //                System.out.print("First:In getPoleDCPA method   ");
-                if (DCPA[n][0] > 0) {
+                if (DCPA[n][0] > 10) {
                     System.out.println(first.id + "==过船首");
-                }else if (DCPA[n][0] < 0) {
+                }else if (DCPA[n][0] < -10) {
                     System.out.println(first.id + "==过船尾");
                 }else{
                     System.out.println("要撞了......");
@@ -981,28 +1008,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             alpha = Math.toRadians(alpha);
             DCPA[n][1] = Math.sin(alpha)*dis;
         }
-        
-        return DCPA;
-    }
-    public double calDCPA(LocalVessel the, LocalVessel vessel){
-        double DCPA;
-        double dis = Math.sqrt(vessel.longitude*vessel.longitude + vessel.latitude*vessel.latitude);
-        //计算矢量和角度
-        float rx = (float) ( vessel.speed*Math.sin(Math.toRadians(vessel.head)) );
-        float ry = (float) ( vessel.speed*Math.cos(Math.toRadians(vessel.head)) - the.speed );
-        float rh = getRatio2(rx, ry);  //矢量和的角度
-        //真方位角度
-        double th = 180 + vessel.ratio;
-        while(th>=360){  //保证范围在0-360之间
-            th -=360;
-        }
-        double alpha = rh-th;
-        if (th<180) {
-            alpha = -alpha;
-        }
-        alpha = Math.toRadians(alpha);
-        DCPA = Math.sin(alpha)*dis;
-        System.out.println("在calDCPA中计算出来的最小距离DCPA : " + DCPA);
         
         return DCPA;
     }
@@ -1059,6 +1064,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         //设置舵角，暂时不用
         this.rudderAngle = rudderAngle;
     }
+    public float finalRudder = 0;  //以后再说，打舵不能一下就到了
     //自动打舵，根据航向的偏差，设置舵角，与    setRudder()    不同
     public void pinRudder(float dirCourse){  //只控制航向，不控制航迹 --- 相当于进行比例操舵
         //根据航向的偏差以一定比例设置舵角

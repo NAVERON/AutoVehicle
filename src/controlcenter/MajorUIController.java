@@ -179,11 +179,13 @@ public class MajorUIController implements Initializable {
     @FXML
     public void clearAllNavigator(){
         //清除所有对象
-        showPane.getChildren().clear();
+        //showPane.getChildren().clear();
+        for(Iterator<Vessel> items = AutoNavVehicle.navigators.iterator();items.hasNext();){
+            showPane.getChildren().remove(items.next());
+        }
         tempVessel = null;
         AutoNavVehicle.navigators.clear();
         navigatorsList.getItems().clear();  //清除列表的记录
-        
         this.currentNavigator = null;
         if (chartupdate.isAlive()) {
             chartupdate.setCurNavigator(null);

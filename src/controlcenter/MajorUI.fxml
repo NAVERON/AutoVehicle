@@ -293,10 +293,13 @@
             </VBox>
             <Pane fx:id="showPane" onMouseClicked="#setCreatePos" onMouseMoved="#mousePosition">
                <children>
-                  <ImageView opacity="0.5" pickOnBounds="true" preserveRatio="true">
+                  <ImageView opacity="0.6" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@../pic/bg.jpg" />
+                        <Image url="@../pic/office.png" />
                      </image>
+                     <viewport>
+                        <Rectangle2D />
+                     </viewport>
                   </ImageView>
                </children>
             </Pane>
