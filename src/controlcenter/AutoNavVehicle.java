@@ -15,7 +15,7 @@ public class AutoNavVehicle extends Application {  //规则和环境没有添加
     public static List<Vessel> navigators = new LinkedList<>();  //存储航行器对象Vessel
     public static float level = 1;  //缩放比例
     public static boolean pause = false;  //暂停的实现，不是很高效
-    public static Loop loop = null;
+    public Loop loop = null;
     
     private Stage stage = null;  //将里面的stage导出来
     
