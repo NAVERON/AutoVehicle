@@ -44,9 +44,6 @@ public class Loop extends Thread{
             while (!AutoNavVehicle.pause) {
                 for (Iterator<Vessel> items = navigators.iterator(); items.hasNext();) {
                     Vessel next = items.next();
-//                    if(next.getIdNumber().equals("12")){
-//                        show.getChildren().add(new Circle(next.getPosition().getX(), next.getPosition().getY(), 2, Color.BLUE));
-//                    }
                     next.goAhead();
                 }
                 try {
