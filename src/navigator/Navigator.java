@@ -170,7 +170,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             }
         }
         //如果周围没有其他对象，则没必要进行下面的计算 ---2017.10.1如果没有危险，就复航
-        if(otherNavs.isEmpty()){ isDanger = false; return; }
         //添加完成，下面进行分析------------------------------------------------------------------
         //先进行坐标转换行不行呢？
         //------------ 坐标转换 ---------------------需要临时存储，具体参看链接：http://blog.csdn.net/can3981132/article/details/52518833
@@ -225,7 +224,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 part4.add(getLocalVessel);
             }
         }
-        if(part1.isEmpty() && part2.isEmpty() && part4.isEmpty()){  //如果正前方和左右没有其他船舶，则复航
+        if(part1.isEmpty() && part2.isEmpty() && part4.isEmpty() && !isDanger){  //如果正前方和左右没有其他船舶，则复航
             voyageReturn();  //准备恢复航线
             return;
         }
@@ -487,6 +486,9 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         //对第一个区间的需要进行变换，否则排序不能正常 --------这部分放在了前面
         for(int n = 0; n < one.size(); n++){  //每一个分组，角度从小到大
             Collections.sort(one.get(n));
+            if(this.idNumber.equals("12")){
+                System.out.println(one.get(n).toString());
+            }
         }
         for(int n = 0; n < two.size(); n++){
             Collections.sort(two.get(n));
@@ -946,7 +948,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             alpha = Math.toRadians(alpha);
             DCPA[n][0] = Math.sin(alpha)*dis;
             if (this.idNumber.equals("12")) {
-                System.out.print("First:In getPoleDCPA method   ");
+//                System.out.print("First:In getPoleDCPA method   ");
                 if (DCPA[n][0] > 0) {
                     System.out.println(first.id + "==过船首");
                 }else if (DCPA[n][0] < 0) {
@@ -956,10 +958,10 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 }
                 
             }
-            if (this.idNumber.equals("12")) {
-                System.out.println(this.idNumber + " =111= 距离："+dis + "  矢量和角度："+rh+"  真方位角度"+th + "  求得的夹角 ："+alpha);
-                System.out.println("第一个极点DCPA："+DCPA[n][0]);
-            }
+//            if (this.idNumber.equals("12")) {
+//                System.out.println(this.idNumber + " =111= 距离："+dis + "  矢量和角度："+rh+"  真方位角度"+th + "  求得的夹角 ："+alpha);
+//                System.out.println("第一个极点DCPA："+DCPA[n][0]);
+//            }
             //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//============================
             //计算另一个极值点
             dis = Math.sqrt(last.longitude*last.longitude + last.latitude*last.latitude);
@@ -967,7 +969,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             rx = (float) ( last.speed*Math.sin(Math.toRadians(last.head)) );
             ry = (float) ( last.speed*Math.cos(Math.toRadians(last.head)) - this.speed );
             rh = getRatio2(rx, ry);  //矢量和的角度
-            //真方位角度
+            //真方位角度  ==  自己在对方的什么方位角
             th = 180 + last.ratio;
             while(th>=360){  //保证范围在0-360之间
                 th -=360;
@@ -1433,7 +1435,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     }
     public void voyageReturn(){
         headDecision = calAngle(destination.getX() - longitude, destination.getY() - latitude);
-        System.out.println(this.idNumber + " : " + this.head + "复航方向 : " + headDecision);
+        //System.out.println(this.idNumber + " : " + this.head + "复航方向 : " + headDecision);
         pinRudder((float) headDecision);
     }
     public double calAngle(double dx, double dy) {  //向上是0度角，顺时针旋转

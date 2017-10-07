@@ -68,7 +68,7 @@ public class Vessel extends Navigator {  //水上航行器,具体的类，根据
                     System.out.println( Vessel.this.getName()
                             +"\nposition-->x :    "+Vessel.this.getPosition().getX()+"    y :     "+Vessel.this.getPosition().getY()
                             +"\nspeed  :   "+Vessel.this.getSpeed()
-                            + "\nrudder : "+Vessel.this.getRudderAngle()
+                            + "\nrudder : ============================="+Vessel.this.getRudderAngle()
                     );
                 }
                 else if(event.getButton()==MouseButton.PRIMARY){  //左舵-2， 读取本航行器存储的信息

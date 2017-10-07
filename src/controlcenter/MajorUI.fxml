@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.image.*?>
 <?import javafx.scene.paint.*?>
 <?import javafx.scene.shape.*?>
 <?import javafx.scene.text.*?>
@@ -292,7 +293,11 @@
             </VBox>
             <Pane fx:id="showPane" onMouseClicked="#setCreatePos" onMouseMoved="#mousePosition">
                <children>
-                  
+                  <ImageView opacity="0.5" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../pic/bg.jpg" />
+                     </image>
+                  </ImageView>
                </children>
             </Pane>
          </items>
