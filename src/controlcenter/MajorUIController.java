@@ -181,7 +181,9 @@ public class MajorUIController implements Initializable {
         //清除所有对象
         //showPane.getChildren().clear();
         for(Iterator<Vessel> items = AutoNavVehicle.navigators.iterator();items.hasNext();){
-            showPane.getChildren().remove(items.next());
+            Vessel temp = items.next();
+            showPane.getChildren().remove(temp);
+            temp.comRunning = false;
         }
         showPane.getChildren().remove(circle);
         
@@ -201,6 +203,7 @@ public class MajorUIController implements Initializable {
             Vessel next = items.next();
             if ( !next.getIdNumber().equals("12") ) {
                 showPane.getChildren().remove(next);
+                next.comRunning = false;
                 items.remove();
             }
         }

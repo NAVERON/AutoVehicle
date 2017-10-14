@@ -31,4 +31,10 @@ public class MessageType implements Serializable{
     public String getContent(){
         return this.content;
     }
+    
+    @Override
+    public String toString(){
+        return this.fromId+","+this.toId+","+this.content;
+    }
+    
 }

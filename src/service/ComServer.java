@@ -17,7 +17,7 @@ import navigator.Vessel;
 public class ComServer extends Thread{
     
     public BlockingQueue<MessageType> messageQueue = new ArrayBlockingQueue<>(100);
-    private static final ComServer instance = new ComServer();  //实例化自己
+    private static ComServer instance = new ComServer();  //实例化自己
     
     private ComServer(){
         this.setDaemon(true);  //设置为守护线程
@@ -46,7 +46,16 @@ public class ComServer extends Thread{
     @Override
     public void run() {
         //super.run();
-        while (messageQueue.size() > 0) {
+        while (AutoNavVehicle.com) {
+            
+            if(messageQueue.isEmpty()){
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(ComServer.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                continue;
+            }
             MessageType message = null;
             try {
                 message = messageQueue.take();

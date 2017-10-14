@@ -86,10 +86,13 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         this.type = type;
         initialNav();
     }
+    public boolean comRunning = true;
     private void initialNav(){
         this.setMinSize(5.0F, 5.0F);
         this.setPrefSize(this.beam * AutoNavVehicle.level, this.navLength * AutoNavVehicle.level);
         comThread = new ComThread(this);  //专门处理通信的对象
+        comThread.start();
+        
         option = new Option(this);  //操纵线程
     }
     
@@ -559,7 +562,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
 //        threeRange = calRange(three, threeRange, threeDCPA, threePole);
 //        fourRange = calRange(four, fourRange, fourDCPA, fourPole);
         if(one.size() > 0){  //先判断第一区域
-            for(int a = 0; a < one.size(); a++) {
+            for(int a = 0; a < one.size(); a++) {  //有危险转30度，要么不转
                 LocalVessel oneTemp = one.get(a).getLast();
                 double oneDcpa = calDCPA(the, oneTemp);
                 if (Math.abs(oneDcpa) < 20) {  //如果存在危险，则右转向
@@ -568,7 +571,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                     headDecision = (headDecision > 0) ? 30 : 0;
                 }
             }
-            for(int b = 0; b < two.size(); b++) {
+            for(int b = 0; b < two.size(); b++) {  //过船首加速并转向，发送协商信号      否则大幅度右转
                 LocalVessel twoTemp = two.get(b).getFirst();
                 double twoDcpa = calDCPA(the, twoTemp);
                 if(twoDcpa < 20) {  //船首向没有就加速通过，否则右转30度通过
@@ -588,15 +591,33 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                     headDecision = headDecision == 0 ? 0 : headDecision;
                 }
             }
-        } else if(two.size() > 0){
+        } else if (two.size() > 0) {
             //船首向没有障碍物，但是右舷有
-            
-        }else if(four.size() > 0){
+            LocalVessel twoTemp = two.get(0).getFirst();
+            double twoDcpa = calDCPA(the, twoTemp);
+            if (twoDcpa < 20) {  //船首向没有就加速通过，否则右转30度通过
+                headDecision = (headDecision > 0) ? headDecision : 0;
+                speedDecision = 2;
+                sendToSome(two.get(0), this.idNumber + "," + "bow");  //stern
+            } else {  //取最右的
+                headDecision = (headDecision > two.get(two.size()-1).getLast().ratio) ?
+                        headDecision :
+                        two.get(two.size()-1).getLast().ratio;
+            }
+        } else if (four.size() > 0) {
             //船首向和右舷都没有，左舷有
-        }else if(threeVisuals.size() > 0){
+            LocalVessel fourTemp = four.get(four.size()-1).getLast();  //取最后一组
+            double fourDcpa = calDCPA(the, fourTemp);
+            if (Math.abs(fourDcpa) < 20) {
+                headDecision = 30;
+            } else {
+                headDecision = 0;
+            }
+        } else if (three.size() > 0) {
             //其他地方都没有，右后方有
+            headDecision = -30;
         }
-        else{
+        else {
             headDecision = 0;
             speedDecision = 0;
         }
@@ -807,7 +828,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     }
     public float finalRudder = 0;  //以后再说，打舵不能一下就到了
     //自动打舵，根据航向的偏差，设置舵角，与    setRudder()    不同
-    public void pinRudder(float diff){  //只控制航向，不控制航迹 --- 相当于进行比例操舵
+    public synchronized void pinRudder(float diff){  //只控制航向，不控制航迹 --- 相当于进行比例操舵
         float ruddernow = this.rudderAngle;
         //根据航向的偏差以一定比例设置舵角
         //float diff = dirCourse - this.head;
@@ -840,7 +861,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             System.out.println("在pinrudder中计算舵角变化，发生了突变");
         }
     }
-    public void pinSpeed(float rest){
+    public synchronized void pinSpeed(float rest){
         //取消，不用写这个方法，下面的加减速已经可以控制了
         //int rest = (int) ((dirSpeed - this.speed)/2);
         Thread pinspeed = new Thread(new Runnable() {
@@ -854,7 +875,8 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 Navigator.this.speed += rest;
             }
         });
-        pinspeed.start();
+        //pinspeed.start();
+        this.speed += rest;
     }
     @Override
     public void turnTo(int desDir) {  //太慢了，怎么解决 --- 使用setrudder人工调节--->pinRudder
@@ -1022,9 +1044,9 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     public void dealCom(MessageType message){  //相当于接收处理然后调用发送线程发送一个
         //调用ComThrad中的方法，可以按照规则启动处理线程-----------这个方法是让
         comThread.messages.add(message);
-        if (!comThread.isAlive()) {
-            comThread.start();  //开启消息队列处理程序
-        }
+//        if (!comThread.isAlive()) {
+//            comThread.start();  //开启消息队列处理程序
+//        }
     }
     /**
      * @param to

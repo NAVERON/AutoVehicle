@@ -32,6 +32,7 @@ public class ComThread extends Thread{
     public ComThread(Navigator navigator){  //初始化的过程中应当将该对象this传递近来，然后就可以调用Navigator的方法了
         //初始化过程中处理
         this.navigator = navigator;
+        setDaemon(true);
     }
     
     //主动发送，被动接收-----------------
@@ -40,10 +41,18 @@ public class ComThread extends Thread{
         //super.run();
         MessageType message = null;
         
-        while (messages.size()>0) {  //针对每一个信息单独分析，还是求解可行域，最后求交集
+        while (navigator.comRunning) {  //针对每一个信息单独分析，还是求解可行域，最后求交集
+            if(messages.isEmpty()){
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(ComThread.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                continue;
+            }
             try {
                 message = messages.take();
-                System.out.println(message.getContent());
+                System.out.println(message.toString());
             } catch (InterruptedException ex) {
                 Logger.getLogger(ComThread.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -79,12 +88,12 @@ public class ComThread extends Thread{
         MessageType message = new MessageType(fromId, toId, content);
         ComServer.getInstance().addQueue(message);
         
-        if (ComServer.getInstance().isAlive()) {  //需要判断线程处理是否正在进行，如果存在，就不需要再次调用了
-            isOk = true;
-        }else{
-            ComServer.getInstance().start();  //处理这个发送信息，调用服务程序，处理信息表
-            isOk = true;
-        }
+//        if (ComServer.getInstance().isAlive()) {  //需要判断线程处理是否正在进行，如果存在，就不需要再次调用了
+//            isOk = true;
+//        }else{
+//            ComServer.getInstance().start();  //处理这个发送信息，调用服务程序，处理信息表
+//            isOk = true;
+//        }
         
         return isOk;  //需要返回确认吗？应该不需要
     }
@@ -95,12 +104,13 @@ public class ComThread extends Thread{
         for(Iterator<LocalVessel> items = some.iterator(); items.hasNext();){
             ComServer.getInstance().addQueue(new MessageType(navigator.getIdNumber(), items.next().id, content));
         }
-        if (ComServer.getInstance().isAlive()) {  //需要判断线程处理是否正在进行，如果存在，就不需要再次调用了
-            isOk = true;
-        }else{
-            ComServer.getInstance().start();  //处理这个发送信息，调用服务程序，处理信息表
-            isOk = true;
-        }
+        
+//        if (ComServer.getInstance().isAlive()) {  //需要判断线程处理是否正在进行，如果存在，就不需要再次调用了
+//            isOk = true;
+//        }else{
+//            ComServer.getInstance().start();  //处理这个发送信息，调用服务程序，处理信息表
+//            isOk = true;
+//        }
         return isOk;
     }
     
@@ -115,12 +125,12 @@ public class ComThread extends Thread{
                 ComServer.getInstance().addQueue(new MessageType(fromId, next.getIdNumber(), content));
             }
         }
-        if (ComServer.getInstance().isAlive()) {  //需要判断线程处理是否正在进行，如果存在，就不需要再次调用了
-            isOk = true;
-        }else{
-            ComServer.getInstance().start();  //处理这个发送信息，调用服务程序，处理信息表
-            isOk = true;
-        }
+//        if (ComServer.getInstance().isAlive()) {  //需要判断线程处理是否正在进行，如果存在，就不需要再次调用了
+//            isOk = true;
+//        }else{
+//            ComServer.getInstance().start();  //处理这个发送信息，调用服务程序，处理信息表
+//            isOk = true;
+//        }
         
         return isOk;
     }
