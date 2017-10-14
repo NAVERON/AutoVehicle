@@ -52,7 +52,7 @@ public class ComThread extends Thread{
             }
             try {
                 message = messages.take();
-                System.out.println(message.toString());
+                //System.out.println(message.toString());
             } catch (InterruptedException ex) {
                 Logger.getLogger(ComThread.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -63,19 +63,44 @@ public class ComThread extends Thread{
             for (LocalVessel next : navigator.locals) {
                 if (next.id.equals(message.getFrom())) {
                     get = next;
+                    navigator.isCom = true;
+                    
                     break;
                 }
             }
-            if ( message.getContent().equals("head") ) {
+            if ( message.getContent().equals("bow") ) {
                 //船首过
-                navigator.isCom = true;
-                navigator.pinRudder(get.ratio);
-                sendToSingle(get.id, "agree");
+                if(get.ratio > -30 && get.ratio < 30){
+                    navigator.comHeadDecision = -30;
+                }else if(get.ratio > 30 && get.ratio < 90){
+                    navigator.comHeadDecision = get.ratio > navigator.headDecision ? get.ratio : navigator.headDecision;
+                }else if(get.ratio > 210 && get.ratio < 330){
+                    navigator.comHeadDecision = -30;
+                }else{
+                    navigator.comHeadDecision = -10;
+                }
             }else if( message.getContent().equals("astern") ){
                 //船尾过
-                navigator.isCom = true;
-                navigator.pinRudder(get.ratio);
-                sendToSingle(get.id, "agree");
+                if(get.ratio > -30 && get.ratio < 30){
+                    navigator.comSpeedDecision = 1;
+                    navigator.lastSpeedDecision += -1;
+                }else if(get.ratio > 30 && get.ratio < 90){
+                    if(navigator.one.isEmpty()){
+                        navigator.comHeadDecision = -20;
+                    }else{
+                        navigator.speedDecision = 1;
+                        navigator.lastSpeedDecision += -1;
+                    }
+                }else if(get.ratio > 210 && get.ratio < 330){
+                    if(navigator.headDecision > 0){
+                        navigator.comHeadDecision = navigator.headDecision;
+                    }else{
+                        navigator.speedDecision = 2;
+                        navigator.lastSpeedDecision += -2;
+                    }
+                }else{
+                    navigator.comHeadDecision = -10;
+                }
             }
         }
     }

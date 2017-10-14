@@ -230,6 +230,9 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 part4.add(getLocalVessel);
             }
         }
+        if(!isDanger){
+            pinSpeed((float) lastSpeedDecision);
+        }
         if(part1.isEmpty() && part2.isEmpty() && part4.isEmpty() && !isDanger){  //如果正前方和左右没有其他船舶，则复航
             voyageReturn();  //准备恢复航线
             isCom = false;
@@ -576,8 +579,10 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 double twoDcpa = calDCPA(the, twoTemp);
                 if(twoDcpa < 20) {  //船首向没有就加速通过，否则右转30度通过
                     headDecision = (headDecision > 0 )? headDecision : 0;
-                    speedDecision = 2;
-                    sendToSome(two.get(b), this.idNumber + "," + "bow");  //stern
+//                    speedDecision = 1;
+//                    lastSpeedDecision += -speedDecision;
+                    sendToSome(two.get(b), "bow");  //stern
+                    System.out.println(this.idNumber + "对右舷的航行器说：我要过你们的船首");
                 } else {  //取最右的
                     headDecision = (headDecision > two.get(b).getLast().ratio) ? headDecision : two.get(b).getLast().ratio;
                 }
@@ -597,8 +602,10 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             double twoDcpa = calDCPA(the, twoTemp);
             if (twoDcpa < 20) {  //船首向没有就加速通过，否则右转30度通过
                 headDecision = (headDecision > 0) ? headDecision : 0;
-                speedDecision = 2;
-                sendToSome(two.get(0), this.idNumber + "," + "bow");  //stern
+//                speedDecision = 1;
+//                lastSpeedDecision += -speedDecision;
+                sendToSome(two.get(0), "bow");  //stern
+                System.out.println("船首没有船" + this.idNumber + "对右舷的航行器说： 我需要过船首");
             } else {  //取最右的
                 headDecision = (headDecision > two.get(two.size()-1).getLast().ratio) ?
                         headDecision :
@@ -620,6 +627,10 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         else {
             headDecision = 0;
             speedDecision = 0;
+        }
+        
+        if(this.speed > 10){
+            speedDecision = comSpeedDecision = -2;
         }
         
         pinRudder((float) (isCom ? comHeadDecision : headDecision));
@@ -1225,6 +1236,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         pinRudder((float) headDecision);
         
         pinSpeed((float) lastSpeedDecision);
+        lastSpeedDecision = 0;
     }
     public double calAngle(double dx, double dy) {  //向上是0度角，顺时针旋转
         double theta = Math.atan2(dy, dx);
