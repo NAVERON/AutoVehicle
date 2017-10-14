@@ -102,14 +102,12 @@ public class Vessel extends Navigator {  //水上航行器,具体的类，根据
     
     /***********************************************************************************/
     public void setStaticAttribute(String idNumber, String name, int navLength, int beam, char type,
-            String imoNumber, String callNumber, String destination, String expTime){
-        super.setStaticAttribute(idNumber, name, navLength, beam, type);
+            String imoNumber, String callNumber, String expTime, String destination){
+        super.setStaticAttribute(idNumber, name, navLength, beam, type, destination);
         
         this.imoNumber = imoNumber;
         this.callNumber = callNumber;
-        String[] point = destination.split(",");
-        Point2D des = new Point2D( Double.parseDouble(point[0]), Double.parseDouble(point[1]) );
-        super.destination = des;
+        
         this.expTime = expTime;
     }
     

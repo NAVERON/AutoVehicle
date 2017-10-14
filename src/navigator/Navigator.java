@@ -1331,12 +1331,17 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     //--------------------------通信方法部分 结束
     
     /*********************************Attribute***********************************/
-    public void setStaticAttribute(String idNumber, String name, int navLength, int beam, char type) {
+    public void setStaticAttribute(String idNumber, String name, int navLength, int beam, char type, String destination) {
         this.idNumber = idNumber;
         this.name = name;
         this.navLength = navLength;
         this.beam = beam;
         this.type = type;
+        
+        String[] point = destination.split(",");
+        Point2D des = new Point2D( Double.parseDouble(point[0]), Double.parseDouble(point[1]) );
+        //System.out.println(des.toString());
+        this.destination = des;
         
         this.setPrefWidth(this.navLength);
         this.setPrefHeight(this.beam);

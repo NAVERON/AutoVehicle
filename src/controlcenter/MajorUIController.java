@@ -271,7 +271,10 @@ public class MajorUIController implements Initializable {
         if ( (choiseType = type_choice.getValue()).equalsIgnoreCase("Vessel") ) {
             type = 'a';
             //这里就可以开始创建vessel对象了
-            tempVessel.setStaticAttribute(idNumber, name, navLength, beam, type);
+            if ( (destination = destination_text.getText().trim()).length() == 0 ) {
+                destination = "300,50";
+            }
+            tempVessel.setStaticAttribute(idNumber, name, navLength, beam, type, destination);
         }else{  //如果是船舶类型则进一步判断
             type = 'b';
             if ( (imoNumber = imoNumber_text.getText().trim()).length() == 0 ) {
