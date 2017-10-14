@@ -588,7 +588,12 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                     headDecision = headDecision == 0 ? 0 : headDecision;
                 }
             }
-        } else {
+        } else if(two.size() > 0){
+            //船首向没有障碍物，但是右舷有
+            
+        }else if(four.size() > 0){
+            //船首向和右舷都没有，左舷有
+        }else{
             headDecision = 0;
             speedDecision = 0;
         }
