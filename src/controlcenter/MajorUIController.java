@@ -315,6 +315,7 @@ public class MajorUIController implements Initializable {
             circle = new Circle(tempVessel.getDestination().getX(), tempVessel.getDestination().getY(), 5, Color.BLUE);
             showPane.getChildren().add( circle );
         }
+        //showPane.getChildren().add( new Circle(tempVessel.getDestination().getX(), tempVessel.getDestination().getY(), 5, Color.BLUE) );
         //还原为空值
         System.out.println(tempVessel.toString());
         tempVessel = null;
