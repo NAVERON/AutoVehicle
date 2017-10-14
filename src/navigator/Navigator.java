@@ -533,58 +533,31 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 thegroup.add(temp);
             }
         }
-        if( !thegroup.isEmpty() ){  //取第一个作为判断标准
+        if( !thegroup.isEmpty() ){  //先是1，2区域，然后左边区域
             Collections.sort(thegroup);  //升序
-            LocalVessel temp = thegroup.getFirst();
-            double dcpa = calDCPA(the, temp);
-            
-            if(this.idNumber.equals("12")){
-                System.out.println(this.idNumber + ":有人跟我一组" + thegroup.toString());
-                System.out.println(this.idNumber + ": DCPA计算 " + dcpa);
-            }
-            
-            if (Math.abs(dcpa) < 20) {  //两个条件，存在危险，前方或者平行地方有障碍物
-                isDanger = true;
+            for(LocalVessel temp : thegroup) {
                 if ((temp.ratio > -30 && temp.ratio < 90) || (temp.ratio > 270 && temp.ratio < 330)) {  //跟随状态
-                    this.speed = temp.speed;
-                    pinRudder(temp.head);
+                    pinSpeed(temp.speed - the.speed);
+                    pinRudder(temp.head);  //输入的是差值
+                    
                     isDanger = true;
                     return;
                 }
             }
+            //如果在领航则不存在危险
         }
         
         //得到极值点之后怎么办？分析可以直接操舵了
         /*一共分成四个领域*/
         oneRange = new float[]{-30F, 30F};
-        twoRange = new float[]{30F, 150F};
-        //threeRange = new float[]{150F, -150F};
-        fourRange = new float[]{-150F, -30F};
+        twoRange = new float[]{30F, 90F};
+        threeRange = new float[]{90F, 210F};
+        fourRange = new float[]{210F, 330F};
         //下面分析   ================   这里有一个问题，如果做出了相同的决策，则下面不需要重新进行动作
-        oneRange = calRange(one, oneRange, oneDCPA, onePole);
-        twoRange = calRange(two, twoRange, twoDCPA, twoPole);
-        //threeRange = calRange(three, threeRange, threeDCPA, threePole);
-        fourRange = calRange(four, fourRange, fourDCPA, fourPole);
-//        System.out.println( this.idNumber + " 目标航向 : "+(oneRange[0] + oneRange[1])/2);
-//这里的Range表示的是角度的相对值，需要加上原坐标系的值
-        //Range里面应该是角度偏差值
-        if(this.idNumber.equals("12")){
-            System.out.println(this.idNumber +" : "+oneRange[0] + "  第一  " + oneRange[1]);
-        }
-        //System.out.println(twoRange[0] + "  Second  " + twoRange[1]);
-        //System.out.println(fourRange[0] + "  Four  " + fourRange[1]);
-        if(oneRange[0] == oneRange[1]){
-            speedDecision = 1;
-        }
-        if( Math.abs(oneRange[0]) < Math.abs(oneRange[1]) ){
-            headDecision = oneRange[0];
-        }else{
-            headDecision = oneRange[1];
-        }
-        if(!isCom){  //最终操纵
-            pinRudder((float) (headDecision));
-            pinSpeed((long)speedDecision);
-        }
+//        oneRange = calRange(one, oneRange, oneDCPA, onePole);
+//        twoRange = calRange(two, twoRange, twoDCPA, twoPole);
+//        threeRange = calRange(three, threeRange, threeDCPA, threePole);
+//        fourRange = calRange(four, fourRange, fourDCPA, fourPole);
         
     }
     
@@ -820,17 +793,17 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         }
         
         if(this.rudderAngle * ruddernow < -100){
-            System.out.println("发生了突变");
+            System.out.println("在pinrudder中计算舵角变化，发生了突变");
         }
     }
-    public void pinSpeed(long rest){
+    public void pinSpeed(float rest){
         //取消，不用写这个方法，下面的加减速已经可以控制了
         //int rest = (int) ((dirSpeed - this.speed)/2);
         Thread pinspeed = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(500 * rest);
+                    Thread.sleep((long) (500 * rest));
                 } catch (InterruptedException ex) {
                     Logger.getLogger(Navigator.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -985,7 +958,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             }
         ).start();
     }
-    
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     //规则实现的方法
     @Override
@@ -1075,7 +1047,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     }
     
     /*********************动态信息处理**********************************************/
-    //添加动态信息
     public synchronized void addDynInfo(DynInfo dynInfo){
         dynInfos.add(dynInfo);
     }
