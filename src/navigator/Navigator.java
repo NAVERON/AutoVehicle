@@ -593,7 +593,10 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             
         }else if(four.size() > 0){
             //船首向和右舷都没有，左舷有
-        }else{
+        }else if(threeVisuals.size() > 0){
+            //其他地方都没有，右后方有
+        }
+        else{
             headDecision = 0;
             speedDecision = 0;
         }
