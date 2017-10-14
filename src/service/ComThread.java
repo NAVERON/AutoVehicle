@@ -37,7 +37,7 @@ public class ComThread extends Thread{
     //主动发送，被动接收-----------------
     @Override
     public void run() { //航行器在将接收的message加入到messages后，开启线程并处理
-        super.run();
+        //super.run();
         MessageType message = null;
         
         while (messages.size()>0) {  //针对每一个信息单独分析，还是求解可行域，最后求交集
@@ -59,10 +59,12 @@ public class ComThread extends Thread{
             }
             if ( message.getContent().equals("head") ) {
                 //船首过
+                navigator.isCom = true;
                 navigator.pinRudder(get.ratio);
                 sendToSingle(get.id, "agree");
             }else if( message.getContent().equals("astern") ){
                 //船尾过
+                navigator.isCom = true;
                 navigator.pinRudder(get.ratio);
                 sendToSingle(get.id, "agree");
             }

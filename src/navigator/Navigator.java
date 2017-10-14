@@ -140,10 +140,10 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     public List<LocalVessel> locals = new LinkedList<>();  //存储转换信息
     public float[] oneRange, twoRange, threeRange, fourRange;  //四个领域的可行范围
     //分组后的组存储
-    ArrayList<LinkedList<LocalVessel>> one;
-    ArrayList<LinkedList<LocalVessel>> two;
-    ArrayList<LinkedList<LocalVessel>> three;
-    ArrayList<LinkedList<LocalVessel>> four;
+    public ArrayList<LinkedList<LocalVessel>> one;
+    public ArrayList<LinkedList<LocalVessel>> two;
+    public ArrayList<LinkedList<LocalVessel>> three;
+    public ArrayList<LinkedList<LocalVessel>> four;
     
     //下面记录速度和角度的偏差
     private double originHead, originSpeed;
@@ -549,16 +549,52 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         
         //得到极值点之后怎么办？分析可以直接操舵了
         /*一共分成四个领域*/
-        oneRange = new float[]{-30F, 30F};
-        twoRange = new float[]{30F, 90F};
-        threeRange = new float[]{90F, 210F};
-        fourRange = new float[]{210F, 330F};
+//        oneRange = new float[]{-30F, 30F};
+//        twoRange = new float[]{30F, 90F};
+//        threeRange = new float[]{90F, 210F};
+//        fourRange = new float[]{210F, 330F};
         //下面分析   ================   这里有一个问题，如果做出了相同的决策，则下面不需要重新进行动作
 //        oneRange = calRange(one, oneRange, oneDCPA, onePole);
 //        twoRange = calRange(two, twoRange, twoDCPA, twoPole);
 //        threeRange = calRange(three, threeRange, threeDCPA, threePole);
 //        fourRange = calRange(four, fourRange, fourDCPA, fourPole);
+        if(one.size() > 0){  //先判断第一区域
+            for(int a = 0; a < one.size(); a++) {
+                LocalVessel oneTemp = one.get(a).getLast();
+                double oneDcpa = calDCPA(the, oneTemp);
+                if (Math.abs(oneDcpa) < 20) {  //如果存在危险，则右转向
+                    headDecision = 30;  //右转30度
+                } else {  //否则，如果前面判断转向，则不变，否则继续保向
+                    headDecision = (headDecision > 0) ? 30 : 0;
+                }
+            }
+            for(int b = 0; b < two.size(); b++) {
+                LocalVessel twoTemp = two.get(b).getFirst();
+                double twoDcpa = calDCPA(the, twoTemp);
+                if(twoDcpa < 20) {  //船首向没有就加速通过，否则右转30度通过
+                    headDecision = (headDecision > 0 )? headDecision : 0;
+                    speedDecision = 2;
+                    sendToSome(two.get(b), this.idNumber + "," + "bow");  //stern
+                } else {  //取最右的
+                    headDecision = (headDecision > two.get(b).getLast().ratio) ? headDecision : two.get(b).getLast().ratio;
+                }
+            }
+            for(int d = 0; d < four.size(); d++){
+                LocalVessel fourTemp = four.get(d).getLast();
+                double fourDcpa = calDCPA(the, fourTemp);
+                if(Math.abs(fourDcpa) < 20 ){
+                    headDecision = ( headDecision > 0 && !isCom )? headDecision : comHeadDecision;
+                }else{
+                    headDecision = headDecision == 0 ? 0 : headDecision;
+                }
+            }
+        } else {
+            headDecision = 0;
+            speedDecision = 0;
+        }
         
+        pinRudder((float) (isCom ? comHeadDecision : headDecision));
+        pinSpeed((float) (isCom ? comSpeedDecision : speedDecision));
     }
     
     /**
@@ -1155,10 +1191,10 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     }
     public void voyageReturn(){
         lastHeadDecision = headDecision;
-        
         headDecision = calAngle(destination.getX() - this.longitude, destination.getY() - this.latitude);
-        //System.out.println(this.idNumber + " : " + this.head + "复航方向 : " + headDecision);
         pinRudder((float) headDecision);
+        
+        pinSpeed((float) lastSpeedDecision);
     }
     public double calAngle(double dx, double dy) {  //向上是0度角，顺时针旋转
         double theta = Math.atan2(dy, dx);
