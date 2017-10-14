@@ -62,7 +62,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     private float speed = 0;
     private float latitude = 0;  //y
     private float longitude = 0;  //x
-    private char state = '0';   //-----状态标识符，使用数字字符标识，10种状态
+    private char state = '0';  //-----状态标识符，使用数字字符标识，10种状态
     private String updateTime;
     private float rudderAngle = 0;
     /*显示操纵过程中的动态变化*/
@@ -174,7 +174,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             }
         }
         //如果周围没有其他对象，则没必要进行下面的计算 ---2017.10.1如果没有危险，就复航
-        //添加完成，下面进行分析------------------------------------------------------------------
         //先进行坐标转换行不行呢？
         //------------ 坐标转换 ---------------------需要临时存储，具体参看链接：http://blog.csdn.net/can3981132/article/details/52518833
         double headRadius = Math.toRadians(this.head);  //表示将要围绕某点旋转的旋角度 ---> r
@@ -206,23 +205,22 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         //2017.7.1  ----  这里的计算斜率需要重新计算以左下角为原点的坐标系计算
         for(int i = 0; i < locals.size(); i++){  //计算每个点相对角度
             locals.get(i).ratio = getRatio2(locals.get(i).longitude, locals.get(i).latitude );  //求取斜率时，y坐标添加负号，为了转换坐标，只是暂时解决
-            //System.out.println("计算出来的ratio是 : " + locals.get(i).ratio);
         }
         //--------- 聚类分析 ----------拿local做计算
         //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
         LinkedList<LocalVessel> part1 = new LinkedList<>();  //  -30 -> 30
-        LinkedList<LocalVessel> part2 = new LinkedList<>();  // 30 -> 150
-        LinkedList<LocalVessel> part3 = new LinkedList<>();  // 150 -> 210
+        LinkedList<LocalVessel> part2 = new LinkedList<>();  // 30 -> 90
+        LinkedList<LocalVessel> part3 = new LinkedList<>();  // 90 -> 210
         LinkedList<LocalVessel> part4 = new LinkedList<>();  //210 - 330
         
         for (LocalVessel getLocalVessel : locals) {
             if (getLocalVessel.ratio >= 330 || getLocalVessel.ratio <= 30) {
                 part1.add(getLocalVessel);
             }
-            if (getLocalVessel.ratio > 30 && getLocalVessel.ratio <= 150) {
+            if (getLocalVessel.ratio > 30 && getLocalVessel.ratio <= 90) {
                 part2.add(getLocalVessel);
             }
-            if (getLocalVessel.ratio > 150 && getLocalVessel.ratio <= 210) {
+            if (getLocalVessel.ratio > 90 && getLocalVessel.ratio <= 210) {
                 part3.add(getLocalVessel);
             }
             if (getLocalVessel.ratio > 210 && getLocalVessel.ratio < 330) {
@@ -237,7 +235,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         //这里转换成负数，方便后边排序计算-----part1---根据ratio排序
         for(int g = 0; g < part1.size(); g++){  //只需要对第一个进行特殊处理
             LocalVessel temp = part1.get(g);
-            if (temp.ratio >= 330 && temp.ratio <= 360) {
+            if (temp.ratio >= 330) {
                 temp.ratio -= 360;
             }
         }
@@ -447,7 +445,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             }
         }
         //对分类后进行分别存储
-        //----------------------------------------------------------------------------------------------
         // for part1
         i--;
         one = new ArrayList<LinkedList<LocalVessel>>();
@@ -488,7 +485,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             four.get(belong-1).add(part4.get(x));
         }
         //2017.7.18  建议使用map映射，键值对
-        //---------------2017.6.22-------------去掉凸包，可以直接根据聚类来计算出边界
         //对第一个区间的需要进行变换，否则排序不能正常 --------这部分放在了前面
         for(int n = 0; n < one.size(); n++){  //每一个分组，角度从小到大
             Collections.sort(one.get(n));
@@ -601,298 +597,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
      * @param n  代表当前是第几个分组
      * @return 返回计算之后缩小的可行域
      */
-    public float[] calOne (double[] oneDCPA, float[] curRange, float[] judgeRange, List<LinkedList<LocalVessel>> one, int n) {  //第三个参数用来索引对象的，需要调用对象的方向head
-        float[] finalRange = new float[]{0F, 0F};  //判断其他航行器的运动态势，是否是顺时针和逆时针
-        if(curRange == null){
-            return null;
-        }
-        //判断当前集合的关系
-        if(curRange[1] < judgeRange[0] || curRange[0] > judgeRange[1]){
-            //相离
-            finalRange[0] = curRange[0];
-            finalRange[1] = curRange[1];
-        }else if( curRange[0] < judgeRange[0] &&judgeRange[1] > curRange[1] && judgeRange[0] < curRange[1] ){
-            //相交，当前可行域在角度偏小的区域
-            finalRange[0] = curRange[0];
-            finalRange[1] = judgeRange[0];
-        }else if( curRange[1]>judgeRange[1] && curRange[0] > judgeRange[0] && curRange[0] < judgeRange[1] ){
-            //相交，与上边相反
-            finalRange[0] = judgeRange[1];
-            finalRange[1] = curRange[1];
-        }else if( curRange[0] > judgeRange[0] && curRange[1] < judgeRange[1] ){
-            //相含，可行域被危险域包含，无解，使用通信
-            //finalRange = null;  //如果返回null，则表示没有路了 ---- 可以减速等操作
-            finalRange = null;
-            pinSpeed(1);
-            sendToAll("stay");  //周边应该呈现发散状态=================================================
-        }else if( curRange[0] < judgeRange[0] && curRange[1] > judgeRange[1] ){  //过船首意味着，会左右舷穿越，过船尾的话  只会在一舷变化
-            //相含，需要判断取哪边？可行域包含了障碍区域
-            //n 索引现在在哪一个分组里
-//            LocalVessel t1 = one.get(n).getFirst();  //角度最小的
-//            LocalVessel t2 = one.get(n).getLast();  //角度最大的------------运动的属性类似，可以不计算
-////            LocalVessel t2 = one.get(n).getLast();  //角度最大的
-//            float t1x = (float) (t1.longitude + t1.speed*Math.sin(Math.toRadians(t1.head)));
-//            float t1y = (float) (t1.latitude + t1.speed*Math.cos(Math.toRadians(t1.head)));
-////            float t2x = (float) (t2.longitude + t2.speed*Math.cos(Math.toRadians(t2.head-90)));
-////            float t2y = (float) (t2.latitude + t2.speed*Math.sin(Math.toRadians(t2.head-90)));
-//            //求取向量叉积
-////            float t2Time = t2.longitude*t2y - t2x*t2.latitude;
-//            float t1Time = t1.longitude*t1y - t1x*t1.latitude;
-//            
-//            if (t1Time > 0) {  //在我不动的情况下，过船首还是船尾
-//                //逆时针转向
-//                if ( !(oneDCPA[0] > 30 || oneDCPA[0] < -30) ) {  //如果处于危险中
-//                    if (t2.ratio < 30) {
-//                        //最大角度小于30
-//                        if (t2.ratio > 0) {
-//                            nowDesition = t2.ratio;
-//                        }else{  //这一组的所有成员都在左舷，并且逆时针趋势
-//                            nowDesition = 0;
-//                        }
-//                        speedDestion = this.speed+2;  //决议：后面再判断执行
-//                        finalRange[0] = judgeRange[1];
-//                        finalRange[1] = curRange[1];
-//                    }else if(t1.ratio>30){
-//                        //加速过对方船首
-//                        speedDestion = 2;  //加速的衡量标准怎么计算，文中应当详细描述
-//                        finalRange[0] = curRange[0];
-//                        finalRange[1] = judgeRange[0];
-//                    }
-//                }else{  //如果暂时没有危险，就认为可以做任何动作，先处理其它的危险
-//                    //继续判断
-//                    finalRange[0] = curRange[0];  //暂时不存在危险，得出可行域，进一步判断
-//                    finalRange[1] = curRange[1];
-//                }
-//            }else{
-//                //顺时针转---------右转一定角度，刚好过去
-//                if ( !(oneDCPA[1] > 30 || oneDCPA[1] < -30) ) {  //如果处于危险中--------幅度是随便设置的，以后需要考虑
-//                    double dis = Math.sqrt(t1.longitude*t1.longitude + t1.latitude*t1.latitude);
-//                    double angle = Math.toDegrees( Math.asin(30/dis) );
-//                    //负值向右，正值向左
-//                    if (t2.ratio < 30) {
-//                        if (t2.ratio < 0) {
-//                            nowDesition = (float) angle;  //向右转向
-//                        }else {  //减速
-//                            if (this.speed > 1) {
-//                                speedDestion = -1;
-//                            } else {
-//                                speedDestion = 0;
-//                            }
-//                        }
-//                        finalRange[0] = judgeRange[1];
-//                        finalRange[1] = curRange[1];
-//                    }
-//                }else{  //如果暂时没有危险，就认为可以做任何动作，先处理其它的危险
-//                    //继续判断
-//                    finalRange[0] = curRange[0];  //暂时不存在危险，得出可行域，进一步判断
-//                    finalRange[1] = judgeRange[0];
-//                }
-//            }
-            if( oneDCPA[1] > 0 ){
-                //过船首
-                if(judgeRange[1] < 0){  //从左舷过来
-                    finalRange[0] = curRange[0];
-                    finalRange[1] = judgeRange[0];
-                }else{
-                    finalRange[0] = judgeRange[1];
-                    finalRange[1] = curRange[1];
-                }
-            }else if( oneDCPA[0] < 0 ){
-                //过船尾
-                if(judgeRange[1] < 0){  //左边过来
-                    finalRange[0] = judgeRange[1];
-                    finalRange[1] = curRange[1];
-                }else{  //右边过来
-                    finalRange[0] = curRange[0];
-                    finalRange[1] = judgeRange[0];
-                }
-            }
-        }
-        
-        return finalRange;
-    }
-    public float[] calTwo (double[] twoDCPA, float[] curRange, float[] judgeRange, List<LinkedList<LocalVessel>> two, int n) {
-        float[] finalRange = new float[]{0F, 0F};  //判断其他航行器的运动态势，是否是顺时针和逆时针
-        if(curRange == null){
-            return null;
-        }
-        //判断当前集合的关系
-        if(curRange[0] > judgeRange[1] || curRange[1] < judgeRange[0]){
-            //相离
-            finalRange[0] = curRange[0];
-            finalRange[1] = curRange[1];
-        }else if( curRange[0] < judgeRange[0] && judgeRange[0] < curRange[1] && judgeRange[1] > curRange[1] ){
-            //相交，当前可行域在角度偏小的区域
-            finalRange[0] = curRange[0];
-            finalRange[1] = judgeRange[0];
-        }else if( curRange[1] > judgeRange[1] &&curRange[0] > judgeRange[0] && curRange[0] < judgeRange[1] ){
-            //相交，与上边相反
-            finalRange[0] = judgeRange[1];
-            finalRange[1] = curRange[1];
-        }else if( curRange[0] > judgeRange[0] && curRange[1] < judgeRange[1] ){
-            //相含，可行域被危险域包含，无解，使用通信
-            //finalRange = null;  //如果返回null，则表示没有路了 ---- 可以减速等操作
-            finalRange = null;
-            pinSpeed(1);
-            sendToAll("stay");
-        }else if( judgeRange[0] > curRange[0] && judgeRange[1] < curRange[1] ){
-            //相含，需要判断取哪边？可行域包含了障碍区域
-            //n 索引现在在哪一个分组里
-//            LocalVessel t1 = two.get(n).getFirst();  //角度最小的
-//            LocalVessel t2 = two.get(n).getLast();
-//            float t1x = (float) (t1.longitude + t1.speed*Math.sin(Math.toRadians(t1.head)));
-//            float t1y = (float) (t1.latitude + t1.speed*Math.cos(Math.toRadians(t1.head)));
-//            float t1Time = t1.longitude*t1y - t1x*t1.latitude;
-//            
-//            if (t1Time > 0) {
-//                //逆时针转向
-//                if ( !(twoDCPA[0] > 30 || twoDCPA[0] < -30) ) {  //危险
-//                    if (curRange[1] < 0) {
-//                        nowDesition = -5;
-//                    }else{
-//                        if (this.speed > 1) {
-//                            speedDestion = -1;
-//                        } else {
-//                            speedDestion = 0;
-//                        }
-//                    }
-//                }
-//                finalRange[0] = curRange[0];
-//                finalRange[1] = curRange[1];
-//            }else{
-//                //顺时针转
-//                finalRange[0] = curRange[0];
-//                finalRange[1] = judgeRange[0];
-//            }
-
-            if( twoDCPA[1] > 0 && twoDCPA[1] < 30){  //存在危险
-                //过船首
-                finalRange[0] = curRange[0];
-                finalRange[1] = judgeRange[0];
-            }else if( twoDCPA[0] < 0 ){
-                //过船尾
-                finalRange[0] = curRange[0];
-                finalRange[1] = curRange[1];
-            }
-        }
-        
-        return finalRange;
-    }
-    public float[] calThree (double[] threeDCPA, float[] curRange, float[] judgeRange, List<LinkedList<LocalVessel>> three, int n) {
-        float[] finalRange = new float[]{0F, 0F};  //判断其他航行器的运动态势，是否是顺时针和逆时针
-        if(curRange == null){
-            return null;
-        }
-        //判断当前集合的关系
-        if(curRange[1] < judgeRange[0] || curRange[0] > judgeRange[1]){
-            //相离
-            finalRange[0] = curRange[0];
-            finalRange[1] = curRange[1];
-        }else if( curRange[0] < judgeRange[0] && judgeRange[1] > curRange[1] && judgeRange[0] < curRange[1] ){
-            //相交，当前可行域在角度偏小的区域
-            finalRange[0] = curRange[0];
-            finalRange[1] = judgeRange[0];
-        }else if( curRange[1] > judgeRange[1] && curRange[0] > judgeRange[0] && curRange[0] < judgeRange[1] ){
-            //相交，与上边相反
-            finalRange[0] = judgeRange[1];
-            finalRange[1] = curRange[1];
-        }else if( curRange[0] > judgeRange[0] && curRange[1] < judgeRange[1] ){
-            //相含，可行域被危险域包含，无解，使用通信
-            //finalRange = null;  //如果返回null，则表示没有路了 ---- 可以减速等操作
-            finalRange = null;
-            pinSpeed(1);
-            sendToAll("stay");
-        }else if( judgeRange[0] > curRange[0] && judgeRange[1] < curRange[1] ){
-            //相含，需要判断取哪边？可行域包含了障碍区域
-            //n 索引现在在哪一个分组里
-//            LocalVessel t1 = three.get(n).getFirst();  //角度最小的
-//            float t1x = (float) (t1.longitude + t1.speed*Math.sin(Math.toRadians(t1.head)));
-//            float t1y = (float) (t1.latitude + t1.speed*Math.cos(Math.toRadians(t1.head)));
-//            float t1Time = t1.longitude*t1y - t1x*t1.latitude;
-//            
-//            if (t1Time > 0) {
-//                //逆时针转向
-//                finalRange[0] = judgeRange[1];
-//                finalRange[1] = curRange[1];
-//            }else{
-//                //顺时针转
-//                if ( !(threeDCPA[0] > 30 || threeDCPA[0] < -30) ) {
-//                    speedDestion = 1;  //accelerate
-//                }
-//                finalRange[0] = curRange[0];
-//                finalRange[1] = judgeRange[1];
-//            }
-
-            finalRange[0] = curRange[0];
-            finalRange[1] = curRange[1];
-        }
-        return finalRange;
-    }
-    public float[] calFour (double[] fourDCPA, float[] curRange, float[] judgeRange, List<LinkedList<LocalVessel>> four, int n) {
-        float[] finalRange = new float[]{0F, 0F};  //判断其他航行器的运动态势，是否是顺时针和逆时针
-        if(curRange == null){
-            return null;
-        }
-        //判断当前集合的关系
-        if(curRange[0] > judgeRange[1] || curRange[1] < judgeRange[0]){
-            //相离
-            finalRange[0] = curRange[0];
-            finalRange[1] = curRange[1];
-        }else if( curRange[0] < judgeRange[0] && judgeRange[0] < curRange[1] && judgeRange[1] > curRange[1] ){
-            //相交，当前可行域在角度偏小的区域
-            finalRange[0] = curRange[0];
-            finalRange[1] = judgeRange[0];
-        }else if( curRange[1] > judgeRange[1] &&curRange[0] > judgeRange[0] && curRange[0] < judgeRange[1] ){
-            //相交，与上边相反
-            finalRange[0] = judgeRange[1];
-            finalRange[1] = curRange[1];
-        }else if( curRange[0] > judgeRange[0] && curRange[1] < judgeRange[1] ){
-            //相含，可行域被危险域包含，无解，使用通信
-            //finalRange = null;  //如果返回null，则表示没有路了 ---- 可以减速等操作
-            finalRange = null;
-            pinSpeed(1);
-            sendToAll("stay");
-        }else if( judgeRange[0] > curRange[0] && judgeRange[1] < curRange[1] ){
-            //相含，需要判断取哪边？可行域包含了障碍区域
-            //n 索引现在在哪一个分组里
-//            LocalVessel t1 = two.get(n).getFirst();  //角度最小的
-//            LocalVessel t2 = two.get(n).getLast();
-//            float t1x = (float) (t1.longitude + t1.speed*Math.sin(Math.toRadians(t1.head)));
-//            float t1y = (float) (t1.latitude + t1.speed*Math.cos(Math.toRadians(t1.head)));
-//            float t1Time = t1.longitude*t1y - t1x*t1.latitude;
-//            
-//            if (t1Time > 0) {
-//                //逆时针转向
-//                if ( !(fourDCPA[0] > 30 || fourDCPA[0] < -30) ) {  //危险
-//                    if (curRange[1] < 0) {
-//                        nowDesition = -5;
-//                    }else{
-//                        if (this.speed > 1) {
-//                            speedDestion = -1;
-//                        } else {
-//                            speedDestion = 0;
-//                        }
-//                    }
-//                }
-//                finalRange[0] = curRange[0];
-//                finalRange[1] = curRange[1];
-//            }else{
-//                //顺时针转
-//                finalRange[0] = curRange[0];
-//                finalRange[1] = judgeRange[0];
-//            }
-
-            if(fourDCPA[1] > 0 && fourDCPA[1] < 30){
-                finalRange[0] = judgeRange[1];
-                finalRange[1] = curRange[1];
-            }else{
-                finalRange[0] = curRange[0];
-                finalRange[1] = curRange[1];
-            }
-        }
-        
-        return finalRange;
-    }
     //以后有机会写一个计算两个区间交集、并集和差集的运算方法，写成API
     double[][] oneDCPA, twoDCPA, threeDCPA, fourDCPA;
     float[][] onePole, twoPole, threePole, fourPole;
@@ -1048,7 +752,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     //需要增加KT系数来计算，以及pid系数
     private float K = 0.0785F, T = 3.12F;
     private float kp = 2F, ki = 20F, kd = 10F;
-    private float curDiff, preDiff, lastDiff;  //解决内不类不能引用局部变量的情况
+    private float curDiff, preDiff, lastDiff;  //解决内部类不能引用局部变量的情况
     private boolean isTurning = false;  //是否正在转向？
     private boolean isSpeeding = false;  //是否正在变速
     
@@ -1078,8 +782,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         this.setRotate(head - 90);
         //System.out.println(this.idNumber + "=航向："+this.head + "  舵角"+this.rudderAngle);
         addDynInfo( new DynInfo(head, course, speed, longitude, latitude, state, new Date(), rudderAngle) );
-        //System.out.println(this.idNumber + "现在的舵角是 : " + this.rudderAngle);
-        //System.out.println(this.idNumber + "航向 : " + this.head);
     }
     @Override
     public void setRudder(float rudderAngle){
@@ -1304,7 +1006,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     public void dealCom(MessageType message){  //相当于接收处理然后调用发送线程发送一个
         //调用ComThrad中的方法，可以按照规则启动处理线程-----------这个方法是让
         comThread.messages.add(message);
-        
         if (!comThread.isAlive()) {
             comThread.start();  //开启消息队列处理程序
         }
@@ -1316,6 +1017,10 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     public void sendToSingle(String to, String content){
         //发送信息到特定的对象
         comThread.sendToSingle(to, content);
+    }
+    public void sendToSome(List<LocalVessel> some, String content){
+        //发送到相关的周边航行器中
+        comThread.sendToSome(some, content);
     }
     public void sendToAll(String content){
         comThread.sendToAll(content);
