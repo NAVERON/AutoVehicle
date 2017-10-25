@@ -98,9 +98,9 @@ public class MajorUIController implements Initializable {
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {  //这里可以初始化界面的初始参数
-        type_choice.getItems().add("Ship");
         type_choice.getItems().add("Vessel");
-        type_choice.setValue("Vessel");  //设置默认的选项
+        type_choice.getItems().add("Ship");
+        type_choice.getSelectionModel().selectFirst();
         
         chartShow.getData().addAll(courseSeries, speedSeries, rudderSeries);
         showPane.setId("showPane");
