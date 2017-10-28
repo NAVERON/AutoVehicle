@@ -62,7 +62,7 @@ public class PidControl extends JPanel {
         //draw.repaint();
         draw.repaint();
 
-        draw.toFile(draw.value, draw.thetas);
+        //draw.toFile(draw.value, draw.thetas);
     }
 
     public void test() {  //测试方法
