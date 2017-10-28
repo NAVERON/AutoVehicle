@@ -63,9 +63,9 @@ public class DynInfo implements Serializable{  //navigator dynamic information
     
     @Override
     public String toString() {
-        if(head > 180){
-            head -= 360;
-        }
+        //if(head > 180){
+        //    head -= 360;
+        //}
         return head + "," + course + "," + speed + "," + longitude + "," + latitude + "," + state + "," + updateTime + "," + rudderAngle;
     }
     
