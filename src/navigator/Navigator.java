@@ -36,7 +36,7 @@ import unity.VisualNav;
 public abstract class Navigator extends Button implements Rule, Manipulation{
     // 对于各种航行器的抽象类， Rule接口定义航行器应当遵守的规则， Manipulation定义操纵性能， Communication定义通信过程
     //底层的地图实现以后再做
-    public List<DynInfo> dynInfos = new LinkedList<>();
+    public List<DynInfo> dynInfos = new LinkedList<>();  //障碍物信息存储
     private ComThread comThread = null;  //通信对象，可以单独线程处理
     public Option option = null;
     public boolean isDanger = false;  //当前是否危险？是 -> 分析并打舵  ==  否 -> 恢复航迹向
@@ -158,7 +158,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     
     public double comHeadDecision = 0;
     public double comSpeedDecision = 0;
-    public boolean isCom = false;  //现在是否使用通信决策
+    public boolean isCom = false;  //现在是否使用通信决策  -- 判断使用通信的决议
     /*============================================特殊区域======================================================*/
     public void analyse(){  //分析当前形式
         otherNavs.clear();  //清空上次计算的 --- 思考如何能够减少这种重复遍历的计算
@@ -168,7 +168,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         float radius = this.speed*100;  //更改---根据速度判断危险区域
         for(Iterator<Vessel> items = AutoNavVehicle.navigators.iterator();items.hasNext();){  //暂时定义一像素代表1米
             Vessel next = items.next();
-            if (this.idNumber.equals(next.getIdNumber())) {  //这里可以使用对象比较吗？都是引用链表上的对象
+            if (this.idNumber.equals(next.getIdNumber())) {  //这里可以使用对象比较吗？都是引用链表上的对象  --可以
                 continue;
             }
             if ( Math.abs(this.getPosition().getX()-next.getPosition().getX()) < radius  //经度代表x坐标
@@ -217,6 +217,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         LinkedList<LocalVessel> part4 = new LinkedList<>();  //210 - 330
         
         for (LocalVessel getLocalVessel : locals) {
+            
             if (getLocalVessel.ratio >= 330 || getLocalVessel.ratio <= 30) {
                 part1.add(getLocalVessel);
             }
@@ -1133,7 +1134,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     public DynInfo getLastDynInfo(){
         return dynInfos.get(dynInfos.size());
     }
-    /***********************特殊计算区域********************************************************/
+    /*********************************特殊计算区域**************************************/
     public float getRatio2(float x, float y){  //坐标系在左下角的情况下，计算坐标系内一点与原心形成的夹角，以正向上为0 度计算的
         //以左下角为原点的坐标系
         double ratio;
@@ -1238,6 +1239,12 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         pinSpeed((float) lastSpeedDecision);
         lastSpeedDecision = 0;
     }
+    
+    /**
+     * @param dx  输入x点坐标
+     * @param dy  输入y点坐标
+     * @return   返回的角度，向上为0度角
+     */
     public double calAngle(double dx, double dy) {  //向上是0度角，顺时针旋转
         double theta = Math.atan2(dy, dx);
         theta += Math.PI/2;
