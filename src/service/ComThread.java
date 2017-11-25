@@ -87,13 +87,15 @@ public class ComThread extends Thread{
                     if(navigator.one.isEmpty()){
                         navigator.comHeadDecision = -10;
                     }else{
-                        navigator.speedDecision = 1;
+                        //navigator.speedDecision = 1;
+                        break;
                     }
                 }else if(get.ratio > 210 && get.ratio < 330){
                     if(navigator.headDecision > 0){
                         navigator.comHeadDecision = navigator.headDecision;
                     }else{
-                        navigator.speedDecision = 1;
+                        //navigator.speedDecision = 1;
+                        break;
                     }
                 }else{
                     navigator.comHeadDecision = -10;
