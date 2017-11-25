@@ -124,7 +124,7 @@ public class MajorUIController implements Initializable {
         }
         this.clickedX = event.getX();
         this.clickedY = event.getY();
-        this.latitude_text.setText(Double.toString(this.clickedY));
+        this.latitude_text.setText(Double.toString(500 - this.clickedY));
         this.longitude_text.setText(Double.toString(this.clickedX));
         //设置
         this.latitude = (float) this.clickedY;
@@ -303,7 +303,7 @@ public class MajorUIController implements Initializable {
         //将第一个动态信息加入
         float rudderAngle = 0.0F;
         tempVessel.setDynAttribute(head, course, speed, longitude, latitude, state, expTime, rudderAngle);
-        tempVessel.addDynInfo(new DynInfo(head, course, speed, longitude, latitude, state, updateTime, rudderAngle));
+        //tempVessel.addDynInfo(new DynInfo(head, course, speed, longitude, latitude, state, updateTime, rudderAngle));
         tempVessel.setDestination(new Point2D(longitude + Math.sin(Math.toRadians(head))*speed*200,
                 latitude - Math.cos(Math.toRadians(head))*speed*200));
         

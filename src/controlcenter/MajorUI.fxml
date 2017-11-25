@@ -291,7 +291,7 @@
                   </Accordion>
                </children>
             </VBox>
-            <Pane fx:id="showPane" onMouseClicked="#setCreatePos" onMouseMoved="#mousePosition">
+            <Pane fx:id="showPane" onMouseClicked="#setCreatePos" onMouseMoved="#mousePosition" prefHeight="550.0" prefWidth="650.0">
                <children>
                   <ImageView opacity="0.6" pickOnBounds="true" preserveRatio="true">
                      <image>
