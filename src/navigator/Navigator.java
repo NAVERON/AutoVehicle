@@ -831,7 +831,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         this.relocate(longitude - navLength/2, latitude - beam/2);
         this.setRotate(head - 90);
         //System.out.println(this.idNumber + "=航向："+this.head + "  舵角"+this.rudderAngle);
-        addDynInfo( new DynInfo(head, course, speed, longitude, latitude, state, new Date(), rudderAngle) );
+        addDynInfo( new DynInfo(head, course, speed, longitude, 500 - latitude, state, new Date(), rudderAngle) );
     }
     @Override
     public void setRudder(float rudderAngle){
