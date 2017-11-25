@@ -570,7 +570,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 LocalVessel oneTemp = one.get(a).getLast();
                 double oneDcpa = calDCPA(the, oneTemp);
                 if (Math.abs(oneDcpa) < 20) {  //如果存在危险，则右转向
-                    headDecision = 30;  //右转30度
+                    headDecision = 30;  //右转30度--- 11.25改变10度小角度
                 } else {  //否则，如果前面判断转向，则不变，否则继续保向
                     headDecision = (headDecision > 0) ? 30 : 0;
                 }
@@ -578,9 +578,9 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             for(int b = 0; b < two.size(); b++) {  //过船首加速并转向，发送协商信号      否则大幅度右转
                 LocalVessel twoTemp = two.get(b).getFirst();
                 double twoDcpa = calDCPA(the, twoTemp);
-                if(twoDcpa < 20) {  //船首向没有就加速通过，否则右转30度通过
+                if(twoDcpa < 20) {  //对方更趋向于过后面，我应当过其前面
                     headDecision = (headDecision > 0 )? headDecision : 0;
-//                    speedDecision = 1;
+                    speedDecision = 1;  //这是变化量
 //                    lastSpeedDecision += -speedDecision;
                     sendToSome(two.get(b), "bow");  //stern
                     System.out.println(this.idNumber + "对右舷的航行器说：我要过你们的船首");
@@ -593,7 +593,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 double fourDcpa = calDCPA(the, fourTemp);
                 if(Math.abs(fourDcpa) < 20 ){
                     headDecision = ( headDecision > 0 && !isCom )? headDecision : comHeadDecision;
-                }else{
+                } else {
                     headDecision = headDecision == 0 ? 0 : headDecision;
                 }
             }
@@ -603,10 +603,10 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             double twoDcpa = calDCPA(the, twoTemp);
             if (twoDcpa < 20) {  //船首向没有就加速通过，否则右转30度通过
                 headDecision = (headDecision > 0) ? headDecision : 0;
-//                speedDecision = 1;
-//                lastSpeedDecision += -speedDecision;
+                speedDecision = 1;
+//                lastSpeedDecision += speedDecision;
                 sendToSome(two.get(0), "bow");  //stern
-                System.out.println("船首没有船" + this.idNumber + "对右舷的航行器说： 我需要过船首");
+                System.out.println("船首没有船 ____" + this.idNumber + "对右舷的航行器说： 我需要过船首");
             } else {  //取最右的
                 headDecision = (headDecision > two.get(two.size()-1).getLast().ratio) ?
                         headDecision :
@@ -617,13 +617,13 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             LocalVessel fourTemp = four.get(four.size()-1).getLast();  //取最后一组
             double fourDcpa = calDCPA(the, fourTemp);
             if (Math.abs(fourDcpa) < 20) {
-                headDecision = 30;
+                headDecision = 10;
             } else {
                 headDecision = 0;
             }
         } else if (three.size() > 0) {
             //其他地方都没有，右后方有
-            headDecision = -30;
+            headDecision = -10;
         }
         else {
             headDecision = 0;
@@ -877,9 +877,9 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         lastDiff = diff;
         
     }
-    public synchronized void pinSpeed(float rest){
+    public synchronized void pinSpeed(float rest){  //速度不能一下增加，不正常
         //取消，不用写这个方法，下面的加减速已经可以控制了
-        this.speed += rest;
+        this.speed += rest/4.0;
     }
     @Override
     public void turnTo(int desDir) {  //太慢了，怎么解决 --- 使用setrudder人工调节--->pinRudder
@@ -1103,6 +1103,8 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         this.setLayoutX(longitude - this.navLength/2);  //先位置，后旋转角度
         this.setLayoutY(latitude - this.beam/2);
         this.setRotate(head - 90);
+        
+        this.lastSpeedDecision = this.speed;
     }
     
     /*********************动态信息处理**********************************************/
