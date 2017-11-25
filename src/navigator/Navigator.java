@@ -1033,7 +1033,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         //这里可以实现用户自定义规则
     }
     
-    //--------------------------通信部分，主动发送信息，被动接收信息
+    //--------------------------通信部分，主动发送信息，被动接收信息---------------
     public void dealCom(MessageType message){  //相当于接收处理然后调用发送线程发送一个
         //调用ComThrad中的方法，可以按照规则启动处理线程-----------这个方法是让
         comThread.messages.add(message);
