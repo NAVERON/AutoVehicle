@@ -565,77 +565,77 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
 //        twoRange = calRange(two, twoRange, twoDCPA, twoPole);
 //        threeRange = calRange(three, threeRange, threeDCPA, threePole);
 //        fourRange = calRange(four, fourRange, fourDCPA, fourPole);
-//        if(one.size() > 0){  //先判断第一区域
-//            for(int a = 0; a < one.size(); a++) {  //有危险转30度，要么不转
-//                LocalVessel oneTemp = one.get(a).getLast();
-//                double oneDcpa = calDCPA(the, oneTemp);
-//                if (Math.abs(oneDcpa) < 20) {  //如果存在危险，则右转向
-//                    headDecision = 30;  //右转30度
-//                } else {  //否则，如果前面判断转向，则不变，否则继续保向
-//                    headDecision = (headDecision > 0) ? 30 : 0;
-//                }
-//            }
-//            for(int b = 0; b < two.size(); b++) {  //过船首加速并转向，发送协商信号      否则大幅度右转
-//                LocalVessel twoTemp = two.get(b).getFirst();
-//                double twoDcpa = calDCPA(the, twoTemp);
-//                if(twoDcpa < 20) {  //船首向没有就加速通过，否则右转30度通过
-//                    headDecision = (headDecision > 0 )? headDecision : 0;
-////                    speedDecision = 1;
-////                    lastSpeedDecision += -speedDecision;
-//                    sendToSome(two.get(b), "bow");  //stern
-//                    System.out.println(this.idNumber + "对右舷的航行器说：我要过你们的船首");
-//                } else {  //取最右的
-//                    headDecision = (headDecision > two.get(b).getLast().ratio) ? headDecision : two.get(b).getLast().ratio;
-//                }
-//            }
-//            for(int d = 0; d < four.size(); d++){
-//                LocalVessel fourTemp = four.get(d).getLast();
-//                double fourDcpa = calDCPA(the, fourTemp);
-//                if(Math.abs(fourDcpa) < 20 ){
-//                    headDecision = ( headDecision > 0 && !isCom )? headDecision : comHeadDecision;
-//                }else{
-//                    headDecision = headDecision == 0 ? 0 : headDecision;
-//                }
-//            }
-//        } else if (two.size() > 0) {
-//            //船首向没有障碍物，但是右舷有
-//            LocalVessel twoTemp = two.get(0).getFirst();
-//            double twoDcpa = calDCPA(the, twoTemp);
-//            if (twoDcpa < 20) {  //船首向没有就加速通过，否则右转30度通过
-//                headDecision = (headDecision > 0) ? headDecision : 0;
-////                speedDecision = 1;
-////                lastSpeedDecision += -speedDecision;
-//                sendToSome(two.get(0), "bow");  //stern
-//                System.out.println("船首没有船" + this.idNumber + "对右舷的航行器说： 我需要过船首");
-//            } else {  //取最右的
-//                headDecision = (headDecision > two.get(two.size()-1).getLast().ratio) ?
-//                        headDecision :
-//                        two.get(two.size()-1).getLast().ratio;
-//            }
-//        } else if (four.size() > 0) {
-//            //船首向和右舷都没有，左舷有
-//            LocalVessel fourTemp = four.get(four.size()-1).getLast();  //取最后一组
-//            double fourDcpa = calDCPA(the, fourTemp);
-//            if (Math.abs(fourDcpa) < 20) {
-//                headDecision = 30;
-//            } else {
-//                headDecision = 0;
-//            }
-//        } else if (three.size() > 0) {
-//            //其他地方都没有，右后方有
-//            headDecision = -30;
-//        }
-//        else {
-//            headDecision = 0;
-//            speedDecision = 0;
-//        }
-//        
-//        if(this.speed > 10){
-//            speedDecision = comSpeedDecision = -2;
-//        }
-//        
-//        pinRudder((float) (isCom ? comHeadDecision : headDecision));
-//        pinSpeed((float) (isCom ? comSpeedDecision : speedDecision));
+        if(one.size() > 0){  //先判断第一区域
+            for(int a = 0; a < one.size(); a++) {  //有危险转30度，要么不转
+                LocalVessel oneTemp = one.get(a).getLast();
+                double oneDcpa = calDCPA(the, oneTemp);
+                if (Math.abs(oneDcpa) < 20) {  //如果存在危险，则右转向
+                    headDecision = 30;  //右转30度
+                } else {  //否则，如果前面判断转向，则不变，否则继续保向
+                    headDecision = (headDecision > 0) ? 30 : 0;
+                }
+            }
+            for(int b = 0; b < two.size(); b++) {  //过船首加速并转向，发送协商信号      否则大幅度右转
+                LocalVessel twoTemp = two.get(b).getFirst();
+                double twoDcpa = calDCPA(the, twoTemp);
+                if(twoDcpa < 20) {  //船首向没有就加速通过，否则右转30度通过
+                    headDecision = (headDecision > 0 )? headDecision : 0;
+//                    speedDecision = 1;
+//                    lastSpeedDecision += -speedDecision;
+                    sendToSome(two.get(b), "bow");  //stern
+                    System.out.println(this.idNumber + "对右舷的航行器说：我要过你们的船首");
+                } else {  //取最右的
+                    headDecision = (headDecision > two.get(b).getLast().ratio) ? headDecision : two.get(b).getLast().ratio;
+                }
+            }
+            for(int d = 0; d < four.size(); d++){
+                LocalVessel fourTemp = four.get(d).getLast();
+                double fourDcpa = calDCPA(the, fourTemp);
+                if(Math.abs(fourDcpa) < 20 ){
+                    headDecision = ( headDecision > 0 && !isCom )? headDecision : comHeadDecision;
+                }else{
+                    headDecision = headDecision == 0 ? 0 : headDecision;
+                }
+            }
+        } else if (two.size() > 0) {
+            //船首向没有障碍物，但是右舷有
+            LocalVessel twoTemp = two.get(0).getFirst();
+            double twoDcpa = calDCPA(the, twoTemp);
+            if (twoDcpa < 20) {  //船首向没有就加速通过，否则右转30度通过
+                headDecision = (headDecision > 0) ? headDecision : 0;
+//                speedDecision = 1;
+//                lastSpeedDecision += -speedDecision;
+                sendToSome(two.get(0), "bow");  //stern
+                System.out.println("船首没有船" + this.idNumber + "对右舷的航行器说： 我需要过船首");
+            } else {  //取最右的
+                headDecision = (headDecision > two.get(two.size()-1).getLast().ratio) ?
+                        headDecision :
+                        two.get(two.size()-1).getLast().ratio;
+            }
+        } else if (four.size() > 0) {
+            //船首向和右舷都没有，左舷有
+            LocalVessel fourTemp = four.get(four.size()-1).getLast();  //取最后一组
+            double fourDcpa = calDCPA(the, fourTemp);
+            if (Math.abs(fourDcpa) < 20) {
+                headDecision = 30;
+            } else {
+                headDecision = 0;
+            }
+        } else if (three.size() > 0) {
+            //其他地方都没有，右后方有
+            headDecision = -30;
+        }
+        else {
+            headDecision = 0;
+            speedDecision = 0;
+        }
+        
+        if(this.speed > 10){
+            speedDecision = comSpeedDecision = -2;
+        }
+        
+        pinRudder((float) (isCom ? comHeadDecision : headDecision));
+        pinSpeed((float) (isCom ? comSpeedDecision : speedDecision));
     }
     
     /**
