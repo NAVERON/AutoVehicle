@@ -233,7 +233,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         }
         /*判断是否恢复航向和航迹*/
         if(!isDanger){  //速度决策表示的是变化量
-            pinSpeed((float) lastSpeedDecision);
+            pinSpeed((float) -lastSpeedDecision);
         }
         if(part1.isEmpty() && part2.isEmpty() && part4.isEmpty() && !isDanger){  //如果正前方和左右没有其他船舶，则复航
             voyageReturn();  //准备恢复航线
@@ -580,8 +580,8 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 double twoDcpa = calDCPA(the, twoTemp);
                 if(twoDcpa < 20) {  //对方更趋向于过后面，我应当过其前面
                     headDecision = (headDecision > 0 )? headDecision : 0;
-                    speedDecision = 1;  //这是变化量
-//                    lastSpeedDecision += -speedDecision;
+                    //speedDecision = 1;  //这是变化量
+                    //lastSpeedDecision -= speedDecision;
                     sendToSome(two.get(b), "bow");  //stern
                     System.out.println(this.idNumber + "对右舷的航行器说：我要过你们的船首");
                 } else {  //取最右的
@@ -603,8 +603,8 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             double twoDcpa = calDCPA(the, twoTemp);
             if (twoDcpa < 20) {  //船首向没有就加速通过，否则右转30度通过
                 headDecision = (headDecision > 0) ? headDecision : 0;
-                speedDecision = 1;
-//                lastSpeedDecision += speedDecision;
+                //speedDecision = 1;
+                //lastSpeedDecision -= speedDecision;
                 sendToSome(two.get(0), "bow");  //stern
                 System.out.println("船首没有船 ____" + this.idNumber + "对右舷的航行器说： 我需要过船首");
             } else {  //取最右的
@@ -624,8 +624,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         } else if (three.size() > 0) {
             //其他地方都没有，右后方有
             headDecision = -10;
-        }
-        else {
+        } else {
             headDecision = 0;
             speedDecision = 0;
         }
@@ -1104,7 +1103,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         this.setLayoutY(latitude - this.beam/2);
         this.setRotate(head - 90);
         
-        this.lastSpeedDecision = this.speed;
+        //this.lastSpeedDecision = this.speed;
     }
     
     /*********************动态信息处理**********************************************/
