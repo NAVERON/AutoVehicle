@@ -545,13 +545,13 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             for(LocalVessel temp : thegroup) {
                 if ((temp.ratio > -30 && temp.ratio < 90) || (temp.ratio > 270 && temp.ratio < 330)) {  //跟随状态
                     pinSpeed(temp.speed - the.speed);
-                    pinRudder(temp.head);  //输入的是差值
+                    pinRudder(temp.head - 0);  //输入的是差值
                     
                     isDanger = true;
-                    return;
+                    return;  //同组的话      就不需要，只要跟着前面就行了
                 }
             }
-            //如果在领航则不存在危险
+            //如果在领航则应当自主判断，并后面做出对应的决策
         }
         
         //得到极值点之后怎么办？分析可以直接操舵了
@@ -802,7 +802,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     //需要增加KT系数来计算，以及pid系数
     private float K = 0.0785F, T = 3.12F;
     private float kp = 2F, ki = 20F, kd = 10F;
-    private float curDiff, preDiff, lastDiff;  //解决内部类不能引用局部变量的情况
+    private float curDiff, preDiff = 0, lastDiff = 0;  //解决内部类不能引用局部变量的情况
     private boolean isTurning = false;  //是否正在转向？
     private boolean isSpeeding = false;  //是否正在变速
     
@@ -849,25 +849,32 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         }else if(diff < -180){
             diff += 360;
         }
-        if (diff == 0) {
-            setRudder(0);
-        } else if(diff > 0){  //需要右舵
-            if (diff < 30) {
-                setRudder(diff/6);
-            }else if (diff <90) {
-                setRudder(diff/3);
-            }else if(diff  > 90){
-                setRudder(35);
-            }
-        } else{  //需要左舵角
-            if(diff > -30){
-                setRudder(-diff/6);
-            }else if(diff > -90){
-                setRudder(-diff/3);
-            }else if(diff < -90){
-                setRudder(-35);
-            }
+//        if (diff == 0) {
+//            setRudder(0);
+//        } else if(diff > 0){  //需要右舵
+//            if (diff < 30) {
+//                setRudder(diff/6);
+//            }else if (diff <90) {
+//                setRudder(diff/3);
+//            }else if(diff  > 90){
+//                setRudder(35);
+//            }
+//        } else{  //需要左舵角
+//            if(diff > -30){
+//                setRudder(-diff/6);
+//            }else if(diff > -90){
+//                setRudder(-diff/3);
+//            }else if(diff < -90){
+//                setRudder(-35);
+//            }
+//        }
+        float rudderDiff = kp * (diff - lastDiff) + (kp / ki) * diff + kp * kd * (diff - 2 * lastDiff + preDiff);
+        rudderAngle += rudderDiff;
+        if (rudderAngle > 35 || rudderAngle < -35) {
+            rudderAngle -= rudderDiff;
         }
+        preDiff = lastDiff;
+        lastDiff = diff;
         
     }
     public synchronized void pinSpeed(float rest){
@@ -877,8 +884,8 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     @Override
     public void turnTo(int desDir) {  //太慢了，怎么解决 --- 使用setrudder人工调节--->pinRudder
         curDiff = desDir - head;
-        preDiff = 0;  //记录上上次的误差
-        lastDiff = 0;  //记录上次的误差
+//        preDiff = 0;  //记录上上次的误差
+//        lastDiff = 0;  //记录上次的误差
         /*开始动作*/
         if (curDiff > 180) {
             curDiff -= 360;

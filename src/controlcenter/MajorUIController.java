@@ -151,12 +151,12 @@ public class MajorUIController implements Initializable {
             this.head = Float.parseFloat(head_text.getText().trim());
         }
         if ( length_text.getText().trim().length()==0 ) {  //如果长度为0，表示是空的
-            navLength = 20;
+            navLength = 10;
         }else{  //如果不为空，获取内容并转换成int类型的数值
             navLength = Integer.parseInt(length_text.getText().trim());
         }
         if ( beam_text.getText().trim().length() == 0 ) {
-            beam = 8;
+            beam = 4;
         }else{
             beam = Integer.parseInt(beam_text.getText().trim());
         }
@@ -261,12 +261,12 @@ public class MajorUIController implements Initializable {
             name = name_text.getText().trim();
         }
         if ( length_text.getText().trim().length()==0 ) {  //如果长度为0，表示是空的
-            navLength = 20;
+            navLength = 10;
         }else{  //如果不为空，获取内容并转换成int类型的数值
             navLength = Integer.parseInt(length_text.getText().trim());
         }
         if ( beam_text.getText().trim().length() == 0 ) {
-            beam = 8;
+            beam = 4;
         }else{
             beam = Integer.parseInt(beam_text.getText().trim());
         }
