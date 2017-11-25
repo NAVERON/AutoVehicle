@@ -231,7 +231,8 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 part4.add(getLocalVessel);
             }
         }
-        if(!isDanger){
+        /*判断是否恢复航向和航迹*/
+        if(!isDanger){  //速度决策表示的是变化量
             pinSpeed((float) lastSpeedDecision);
         }
         if(part1.isEmpty() && part2.isEmpty() && part4.isEmpty() && !isDanger){  //如果正前方和左右没有其他船舶，则复航
@@ -255,7 +256,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         int i = 1;  //分组类别指示
         for (Iterator<LocalVessel> it = part1.iterator(); it.hasNext();) {
             LocalVessel t = it.next();
-            
             if (t.belong != -1) {  //如果已经分配过，则不用计算了
                 continue;
             }
@@ -869,39 +869,17 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             }
         }
         
-        if(this.rudderAngle * ruddernow < -100){
-            System.out.println("在pinrudder中计算舵角变化，发生了突变");
-        }
     }
     public synchronized void pinSpeed(float rest){
         //取消，不用写这个方法，下面的加减速已经可以控制了
-        //int rest = (int) ((dirSpeed - this.speed)/2);
-        Thread pinspeed = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep((long) (500 * rest));
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(Navigator.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                Navigator.this.speed += rest;
-            }
-        });
-        //pinspeed.start();
         this.speed += rest;
     }
     @Override
     public void turnTo(int desDir) {  //太慢了，怎么解决 --- 使用setrudder人工调节--->pinRudder
         curDiff = desDir - head;
-        if (curDiff > 180) {
-            curDiff -= 360;
-        } else if (curDiff < -180) {
-            curDiff += 360;
-        }
         preDiff = 0;  //记录上上次的误差
         lastDiff = 0;  //记录上次的误差
         /*开始动作*/
-        curDiff = desDir - head;
         if (curDiff > 180) {
             curDiff -= 360;
         } else if (curDiff < -180) {
@@ -958,12 +936,8 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         speed += diff / 4;
         if(isSpeeding){
             isSpeeding = false;
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Navigator.class.getName()).log(Level.SEVERE, null, ex);
-            }
         }
+        
         Thread speeding = new Thread(new Runnable() {
             @Override
             public void run() {
