@@ -65,6 +65,8 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     private char state = '0';  //-----状态标识符，使用数字字符标识，10种状态
     private String updateTime;
     private float rudderAngle = 0;
+    public float preRudder = 0;
+    public float lastRudder = 0;
     /*显示操纵过程中的动态变化*/
     //private float rotateRate = 0.0F;  //转角速度----------暂时不用
     /////////////////////////////---动态存储区结束---/////////////////////////////
@@ -817,6 +819,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         if (latitude < 0) { latitude = 500; }
         //根据rudderAngle计算角速度，2017.7.14增加：如果没有速度，舵没有效果
         if (this.rudderAngle != 0) { this.head += K*rudderAngle*( 2-T+T*Math.pow(Math.E, -2/T) ); }
+        //if (this.lastRudder != 0) { this.head += K*lastRudder*( 2-T+T*Math.pow(Math.E, -2/T) ); }
         while(this.head>=360 || this.head < 0){  //保证范围在0-360之间 -- 使用if也可以
             if(this.head >= 360){
                 this.head -= 360;
@@ -868,6 +871,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
 //            }
 //        }
         float rudderDiff = kp * (diff - lastDiff) + (kp / ki) * diff + kp * kd * (diff - 2 * lastDiff + preDiff);
+        System.out.println("rudder diff : " + rudderDiff);
         rudderAngle += rudderDiff;
         if (rudderAngle > 35 || rudderAngle < -35) {
             rudderAngle -= rudderDiff;
@@ -875,6 +879,11 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         preDiff = lastDiff;
         lastDiff = diff;
         
+//        preRudder = lastRudder;
+//        if((rudderAngle-lastRudder)*(lastRudder-preRudder) < 0){
+//            lastRudder = (lastRudder+rudderAngle)/2;
+//        }
+//        lastRudder = rudderAngle;
     }
     public synchronized void pinSpeed(float rest){  //速度不能一下增加，不正常
         //取消，不用写这个方法，下面的加减速已经可以控制了
