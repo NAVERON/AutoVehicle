@@ -572,9 +572,9 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 LocalVessel oneTemp = one.get(a).getLast();
                 double oneDcpa = calDCPA(the, oneTemp);
                 if (Math.abs(oneDcpa) < 20) {  //如果存在危险，则右转向
-                    headDecision = 30;  //右转30度--- 11.25改变10度小角度
+                    headDecision = 10;  //右转30度--- 11.25改变10度小角度
                 } else {  //否则，如果前面判断转向，则不变，否则继续保向
-                    headDecision = (headDecision > 0) ? 30 : 0;
+                    headDecision = (headDecision > 0) ? 10 : 0;
                 }
             }
             for(int b = 0; b < two.size(); b++) {  //过船首加速并转向，发送协商信号      否则大幅度右转
@@ -810,6 +810,11 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     @Override
     public void goAhead(){
         analyse();
+        float a = rudderAngle - lastRudder;
+        float b = lastRudder - preRudder;
+        if( a*b<0 && Math.abs(a-b)<5 ){  //符号相反
+            lastRudder = (preRudder+rudderAngle)/2;
+        }
         longitude += speed*Math.sin(Math.toRadians(head));  //couse是船首向和风流作用的合力方向
         latitude -= speed*Math.cos(Math.toRadians(head));  //这样计算之后如果需要添加风流效果，可以再次求矢量和
         //超界处理
@@ -828,12 +833,14 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 this.head += 360;
             }
         }
+        preRudder = lastRudder;
+        lastRudder = rudderAngle;
         
         this.course = this.head;  //----这个风流问题怎么解决？
         this.relocate(longitude - navLength/2, latitude - beam/2);
         this.setRotate(head - 90);
         //System.out.println(this.idNumber + "=航向："+this.head + "  舵角"+this.rudderAngle);
-        addDynInfo( new DynInfo(head, course, speed, longitude, 500 - latitude, state, new Date(), rudderAngle) );
+        addDynInfo( new DynInfo(head, course, speed, longitude, 500 - latitude, state, new Date(), lastRudder) );
     }
     @Override
     public void setRudder(float rudderAngle){
