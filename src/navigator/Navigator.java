@@ -842,36 +842,19 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     }
     public float finalRudder = 0;  //以后再说，打舵不能一下就到了
     //自动打舵，根据航向的偏差，设置舵角，与    setRudder()    不同
+    //出现diff过大或则求得的rudderdiff过大原因，就是将PID离散化，需要3步才能清楚遗留的舵角矫正
     public synchronized void pinRudder(float diff){  //只控制航向，不控制航迹 --- 相当于进行比例操舵
         float ruddernow = this.rudderAngle;
         //根据航向的偏差以一定比例设置舵角
         //float diff = dirCourse - this.head;
+        System.out.println(this.idNumber + " : " +diff);
         if (diff > 180) {
             diff -= 360;  //变成负值
         }else if(diff < -180){
             diff += 360;
         }
-//        if (diff == 0) {
-//            setRudder(0);
-//        } else if(diff > 0){  //需要右舵
-//            if (diff < 30) {
-//                setRudder(diff/6);
-//            }else if (diff <90) {
-//                setRudder(diff/3);
-//            }else if(diff  > 90){
-//                setRudder(35);
-//            }
-//        } else{  //需要左舵角
-//            if(diff > -30){
-//                setRudder(-diff/6);
-//            }else if(diff > -90){
-//                setRudder(-diff/3);
-//            }else if(diff < -90){
-//                setRudder(-35);
-//            }
-//        }
         float rudderDiff = kp * (diff - lastDiff) + (kp / ki) * diff + kp * kd * (diff - 2 * lastDiff + preDiff);
-        System.out.println("rudder diff : " + rudderDiff);
+        System.out.println("diff = "+ diff +"    "+ this.idNumber + "rudder diff : " + rudderDiff);
         rudderAngle += rudderDiff;
         if (rudderAngle > 35 || rudderAngle < -35) {
             rudderAngle -= rudderDiff;
@@ -879,11 +862,6 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         preDiff = lastDiff;
         lastDiff = diff;
         
-//        preRudder = lastRudder;
-//        if((rudderAngle-lastRudder)*(lastRudder-preRudder) < 0){
-//            lastRudder = (lastRudder+rudderAngle)/2;
-//        }
-//        lastRudder = rudderAngle;
     }
     public synchronized void pinSpeed(float rest){  //速度不能一下增加，不正常
         //取消，不用写这个方法，下面的加减速已经可以控制了
