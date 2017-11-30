@@ -208,8 +208,8 @@
                                           </HBox>
                                           <HBox layoutX="20.0" layoutY="66.0" prefHeight="20.0" prefWidth="250.0">
                                              <children>
-                                                <Label fx:id="latitude_label" alignment="CENTER" contentDisplay="TOP" prefHeight="20.0" prefWidth="100.0" text="Latitude" />
-                                                <TextField fx:id="latitude_text" editable="true" prefHeight="20.0" prefWidth="150.0" promptText="Latitude">
+                                                <Label fx:id="longitude_label" alignment="CENTER" contentDisplay="TOP" prefHeight="20.0" prefWidth="100.0" text="Longitude" />
+                                                <TextField fx:id="longitude_text" editable="true" prefHeight="20.0" prefWidth="150.0" promptText="Longitude">
                                                    <HBox.margin>
                                                       <Insets left="10.0" />
                                                    </HBox.margin>
@@ -218,8 +218,8 @@
                                           </HBox>
                                           <HBox layoutX="20.0" layoutY="66.0" prefHeight="20.0" prefWidth="250.0">
                                              <children>
-                                                <Label fx:id="longitude_label" alignment="CENTER" contentDisplay="TOP" prefHeight="20.0" prefWidth="100.0" text="Longitude" />
-                                                <TextField fx:id="longitude_text" editable="true" prefHeight="20.0" prefWidth="150.0" promptText="Longitude">
+                                                <Label fx:id="latitude_label" alignment="CENTER" contentDisplay="TOP" prefHeight="20.0" prefWidth="100.0" text="Latitude" />
+                                                <TextField fx:id="latitude_text" editable="true" prefHeight="20.0" prefWidth="150.0" promptText="Latitude">
                                                    <HBox.margin>
                                                       <Insets left="10.0" />
                                                    </HBox.margin>

@@ -812,7 +812,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         analyse();
         float a = rudderAngle - lastRudder;
         float b = lastRudder - preRudder;
-        if( a*b<0 && Math.abs(a-b)<5 && Math.abs(a)>2 && Math.abs(b)>2 ){  //符号相反
+        if( a*b<0 && (Math.abs(a)>5 || Math.abs(b)>5) ){  //符号相反
             lastRudder = (preRudder+rudderAngle)/2;
         }
         longitude += speed*Math.sin(Math.toRadians(head));  //couse是船首向和风流作用的合力方向
@@ -862,14 +862,9 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         }
         float rudderDiff = kp * (diff - lastDiff) + (kp / ki) * diff + kp * kd * (diff - 2 * lastDiff + preDiff);
         System.out.println("diff = "+ diff +"    "+ this.idNumber + "rudder diff : " + rudderDiff);
-        rudderAngle += rudderDiff;
+        rudderAngle += rudderDiff/4;
         if (rudderAngle > 35 || rudderAngle < -35) {
-            rudderAngle -= rudderDiff;
-            if(rudderDiff > 35){
-                rudderAngle += 5;
-            }else if (rudderDiff < -35){
-                rudderAngle -= 5;
-            }
+            rudderAngle -= rudderDiff/4;
         }
         preDiff = lastDiff;
         lastDiff = diff;

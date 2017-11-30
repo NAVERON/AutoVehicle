@@ -127,7 +127,7 @@ public class MajorUIController implements Initializable {
         this.latitude_text.setText(Double.toString(500 - this.clickedY));
         this.longitude_text.setText(Double.toString(this.clickedX));
         //设置
-        this.latitude = (float) this.clickedY;
+        this.latitude = 500 - (float) this.clickedY;
         this.longitude = (float) this.clickedX;
         //-------提取方向和长，宽-----------------------------------------------//
         if ( (choiseType = type_choice.getValue()).equalsIgnoreCase("Vessel")) {
@@ -163,7 +163,7 @@ public class MajorUIController implements Initializable {
         //设置创建对象的属性，主要是显示的属性，船首向和位置--->不用设置对象本身的属性，因为只是显示
         tempVessel.setType(type);  //设置显示颜色的变化===================
         tempVessel.setLayoutX(longitude - navLength/2);
-        tempVessel.setLayoutY(latitude - beam/2);
+        tempVessel.setLayoutY(500 - latitude - beam/2);
         tempVessel.setRotate(head - 90); //朝向问题，显示和后台的数据应当不一致，前面显示的坐标系不同。。。
         tempVessel.setPrefWidth(this.navLength);
         tempVessel.setPrefHeight(this.beam);
@@ -243,6 +243,12 @@ public class MajorUIController implements Initializable {
             this.speed = 2.0F;
         }else{
             this.speed = Float.parseFloat(speed_text.getText().trim());
+        }
+        if(latitude_text.getText().trim().length() != 0){
+            this.latitude = Float.parseFloat(latitude_text.getText().trim());
+        }
+        if(longitude_text.getText().trim().length() != 0){
+            this.longitude = Float.parseFloat(longitude_text.getText().trim());
         }
         //--------------------经纬度不用考虑，在点击过程中已经获得----------------------//
         //将当前缓存对象显示出来
