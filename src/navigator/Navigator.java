@@ -823,7 +823,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         if (latitude > 500) { latitude = 0; }
         if (latitude < 0) { latitude = 500; }
         //根据rudderAngle计算角速度，2017.7.14增加：如果没有速度，舵没有效果
-        if (this.lastRudder != 0) { this.head += K*lastRudder*( 2-T+T*Math.pow(Math.E, -2/T) ); }
+        if (this.rudderAngle != 0) { this.head += K*rudderAngle*( 2-T+T*Math.pow(Math.E, -2/T) ); }
         //if (this.lastRudder != 0) { this.head += K*lastRudder*( 2-T+T*Math.pow(Math.E, -2/T) ); }
         while(this.head>=360 || this.head < 0){  //保证范围在0-360之间 -- 使用if也可以
             if(this.head >= 360){
