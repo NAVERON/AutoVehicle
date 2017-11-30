@@ -862,9 +862,9 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         }
         float rudderDiff = kp * (diff - lastDiff) + (kp / ki) * diff + kp * kd * (diff - 2 * lastDiff + preDiff);
         System.out.println("diff = "+ diff +"    "+ this.idNumber + "rudder diff : " + rudderDiff);
-        rudderAngle += rudderDiff/4;
+        rudderAngle += rudderDiff;
         if (rudderAngle > 35 || rudderAngle < -35) {
-            rudderAngle -= rudderDiff/4;
+            rudderAngle -= rudderDiff;
         }
         preDiff = lastDiff;
         lastDiff = diff;
