@@ -865,6 +865,11 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         rudderAngle += rudderDiff;
         if (rudderAngle > 35 || rudderAngle < -35) {
             rudderAngle -= rudderDiff;
+            if(rudderDiff > 35){
+                rudderAngle += 5;
+            }else if (rudderDiff < -35){
+                rudderAngle -= 5;
+            }
         }
         preDiff = lastDiff;
         lastDiff = diff;
