@@ -31,7 +31,7 @@ public class Turnto extends JPanel {
             cur_u = 0;  //当前偏差,对舵角的偏移值
 
     public ArrayList<Float> uArray = new ArrayList<>();  //计算输出值存储-->现在用来存储当前值与目标值的误差
-    public ArrayList<Float> value = new ArrayList<>();  //被控制量的变化情况
+    public ArrayList<Float> value = new ArrayList<>();  //被控制量的变化情况  --》航向
     public ArrayList<Float> thetas = new ArrayList<>();  //舵角变化情况
     float K = 0.0785F, T = 3.12F;  //船舶操纵性能，根据操纵性能求出舵角theta后->角度变化
 
@@ -62,7 +62,7 @@ public class Turnto extends JPanel {
         //draw.repaint();
         draw.repaint();
 
-        //draw.toFile(draw.value, draw.thetas);
+        draw.toFile(draw.value, draw.thetas);
     }
 
     float x = 0, y = 0;
@@ -91,7 +91,7 @@ public class Turnto extends JPanel {
                 theta -= cur_u;
             }
             //根据舵角计算下一次采集的航向值---->
-            float div = (float) (K * theta * (2 - T + T * Math.pow(Math.E, -2 / T)));
+            float div = (float) (K * theta * (1 - T + T * Math.pow(Math.E, -1 / T)));
 
             curValue += div;  //计算当前航向角
             x = (float) (x + speed * Math.sin(Math.toRadians(curValue)));
@@ -261,7 +261,7 @@ public class Turnto extends JPanel {
 
     public void toFile(ArrayList<Float> value, ArrayList<Float> thetas) {  ///输出到文件中
         //将数据输出文件
-        File out = new File(".\\target.csv");
+        File out = new File("store\\target.csv");
         FileWriter fileWriter = null;
         BufferedWriter bufferedWriter = null;
         try {
