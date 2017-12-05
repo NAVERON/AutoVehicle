@@ -810,11 +810,11 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
     @Override
     public void goAhead(){
         analyse();
-        float a = rudderAngle - lastRudder;
-        float b = lastRudder - preRudder;
-        if( a*b<0 && (Math.abs(a)>5 || Math.abs(b)>5) ){  //符号相反
-            lastRudder = (preRudder+rudderAngle)/2;
-        }
+//        float a = rudderAngle - lastRudder;
+//        float b = lastRudder - preRudder;
+//        if( a*b<0 && (Math.abs(a)>5 || Math.abs(b)>5) ){  //符号相反
+//            lastRudder = (preRudder+rudderAngle)/2;
+//        }
         longitude += speed*Math.sin(Math.toRadians(head));  //couse是船首向和风流作用的合力方向
         latitude -= speed*Math.cos(Math.toRadians(head));  //这样计算之后如果需要添加风流效果，可以再次求矢量和
         //超界处理
@@ -833,14 +833,14 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 this.head += 360;
             }
         }
-        preRudder = lastRudder;
-        lastRudder = rudderAngle;
+//        preRudder = lastRudder;
+//        lastRudder = rudderAngle;
         
         this.course = this.head;  //----这个风流问题怎么解决？
         this.relocate(longitude - navLength/2, latitude - beam/2);
         this.setRotate(head - 90);
         //System.out.println(this.idNumber + "=航向："+this.head + "  舵角"+this.rudderAngle);
-        addDynInfo( new DynInfo(head, course, speed, longitude, 500 - latitude, state, new Date(), lastRudder) );
+        addDynInfo( new DynInfo(head, course, speed, longitude, 500 - latitude, state, new Date(), rudderAngle) );
     }
     @Override
     public void setRudder(float rudderAngle){
