@@ -71,11 +71,11 @@ public class ComThread extends Thread{
             if ( message.getContent().equals("bow") ) {
                 //船首过
                 if(get.ratio > -30 && get.ratio < 0){
-                    navigator.comHeadDecision = -10;
+                    navigator.comHeadDecision = -30;
                 }else if(get.ratio > 0 && get.ratio < 90){
                     navigator.comHeadDecision = get.ratio > navigator.headDecision ? get.ratio : navigator.headDecision;
                 }else if(get.ratio > 210 && get.ratio < 330){
-                    navigator.comHeadDecision = -10;
+                    navigator.comHeadDecision = -30;
                 }else{
                     navigator.comHeadDecision = 0;
                 }
