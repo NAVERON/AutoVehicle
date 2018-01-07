@@ -584,8 +584,9 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                     headDecision = (headDecision > 0 )? headDecision : 0;
                     //speedDecision = 1;  //这是变化量
                     //lastSpeedDecision -= speedDecision;
-                    sendToSome(two.get(b), "bow");  //stern
-                    System.out.println(this.idNumber + "对右舷的航行器说：我要过你们的船首");
+                    
+                    //sendToSome(two.get(b), "bow");  //stern
+                    //System.out.println(this.idNumber + "对右舷的航行器说：我要过你们的船首");
                 } else {  //取最右的
                     headDecision = (headDecision > two.get(b).getLast().ratio) ? headDecision : two.get(b).getLast().ratio;
                 }
@@ -607,8 +608,9 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 headDecision = (headDecision > 0) ? headDecision : 0;
                 //speedDecision = 1;
                 //lastSpeedDecision -= speedDecision;
-                sendToSome(two.get(0), "bow");  //stern
-                System.out.println("船首没有船 ____" + this.idNumber + "对右舷的航行器说： 我需要过船首");
+                
+                //sendToSome(two.get(0), "bow");  //stern
+                //System.out.println("船首没有船 ____" + this.idNumber + "对右舷的航行器说： 我需要过船首");
             } else {  //取最右的
                 headDecision = (headDecision > two.get(two.size()-1).getLast().ratio) ?
                         headDecision :
