@@ -572,7 +572,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 LocalVessel oneTemp = one.get(a).getLast();
                 double oneDcpa = calDCPA(the, oneTemp);
                 if (Math.abs(oneDcpa) < 20) {  //如果存在危险，则右转向
-                    headDecision = 10;  //右转30度--- 11.25改变10度小角度
+                    headDecision = 30;  //右转30度--- 11.25改变10度小角度
                 } else {  //否则，如果前面判断转向，则不变，否则继续保向
                     headDecision = (headDecision > 0) ? 10 : 0;
                 }
