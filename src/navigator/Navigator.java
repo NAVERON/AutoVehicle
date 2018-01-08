@@ -572,7 +572,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 LocalVessel oneTemp = one.get(a).getLast();
                 double oneDcpa = calDCPA(the, oneTemp);
                 if (Math.abs(oneDcpa) < 20) {  //如果存在危险，则右转向
-                    headDecision = 30;  //右转30度--- 11.25改变10度小角度
+                    headDecision = 10;  //右转30度--- 11.25改变10度小角度
                 } else {  //否则，如果前面判断转向，则不变，否则继续保向
                     headDecision = (headDecision > 0) ? 10 : 0;
                 }
@@ -581,7 +581,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 LocalVessel twoTemp = two.get(b).getFirst();
                 double twoDcpa = calDCPA(the, twoTemp);
                 if(twoDcpa < 20) {  //对方更趋向于过后面，我应当过其前面
-                    headDecision = (headDecision > 0 )? headDecision : 0;
+                    headDecision = (headDecision > 0 )? 60 : 0;
                     //speedDecision = 1;  //这是变化量
                     //lastSpeedDecision -= speedDecision;
                     
@@ -605,7 +605,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             LocalVessel twoTemp = two.get(0).getFirst();
             double twoDcpa = calDCPA(the, twoTemp);
             if (twoDcpa < 20) {  //船首向没有就加速通过，否则右转30度通过
-                headDecision = (headDecision > 0) ? headDecision : 0;
+                headDecision = (headDecision > 0) ? headDecision : -10;
                 //speedDecision = 1;
                 //lastSpeedDecision -= speedDecision;
                 
