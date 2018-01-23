@@ -621,7 +621,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
             LocalVessel fourTemp = four.get(four.size()-1).getLast();  //取最后一组
             double fourDcpa = calDCPA(the, fourTemp);
             if (Math.abs(fourDcpa) < 20) {
-                headDecision = 30;
+                headDecision = 10;
             } else {
                 headDecision = 0;
             }
