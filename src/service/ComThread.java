@@ -63,7 +63,7 @@ public class ComThread extends Thread{
             for (LocalVessel next : navigator.locals) {
                 if (next.id.equals(message.getFrom())) {
                     get = next;
-                    navigator.isCom = false;  //////////////////////////////////////////////////////////////////////----->不使用协商
+                    navigator.isCom = true;  //////////////////////////////////////////////////////////////////////----->不使用协商
                     
                     break;
                 }
@@ -105,7 +105,7 @@ public class ComThread extends Thread{
     }
     
     public boolean sendToSingle(String toId, String content){
-        navigator.isCom = false;
+        navigator.isCom = true;
         boolean isOk = false;
         String fromId = navigator.getIdNumber();
         
@@ -122,7 +122,7 @@ public class ComThread extends Thread{
         return isOk;  //需要返回确认吗？应该不需要
     }
     public boolean sendToSome(List<LocalVessel> some, String content){
-        navigator.isCom = false;
+        navigator.isCom = true;
         boolean isOk = false;
         
         for(Iterator<LocalVessel> items = some.iterator(); items.hasNext();){
@@ -139,7 +139,7 @@ public class ComThread extends Thread{
     }
     
     public boolean sendToAll(String content){
-        navigator.isCom = false;
+        navigator.isCom = true;
         boolean isOk = false;
         String fromId = navigator.getIdNumber();
         
