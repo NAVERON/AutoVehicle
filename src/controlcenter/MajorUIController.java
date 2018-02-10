@@ -34,6 +34,7 @@ import javafx.scene.shape.Circle;
 import navigator.DynInfo;
 import navigator.Vessel;
 import navigator.VesselCreateFactory;
+import unity.FileDataManager;
 
 
 /**
@@ -61,7 +62,8 @@ public class MajorUIController implements Initializable {
     @FXML
     //private DateTimePicker updateTimePick;
     private DatePicker updateTimePicker;
-    @FXML private ListView<String> storedList;
+    @FXML private ListView<String> storedList;  //存储相关   
+    @FXML private  Button save_track;
     @FXML private ListView<String> navigatorsList;
     
     @FXML private Pane showPane;  //显示动画展示的区域
@@ -332,6 +334,15 @@ public class MajorUIController implements Initializable {
         //最后需要加入清空输入信息的操作     ----  2017.6.28 cancle
         
     }
+    
+    @FXML
+    public void saveFunction(){  //存储并实现更新存储显示列表
+        for(Vessel vessel : AutoNavVehicle.navigators){
+            FileDataManager.saveDynInfos(vessel.dynInfos, vessel.getIdNumber());
+            storedList.getItems().add(vessel.getIdNumber() + " : tracks -> " + vessel.dynInfos.size());
+        }
+    }
+    
     Circle circle;  //目标点
     /********折线图的动态显示*****************************************/
     
