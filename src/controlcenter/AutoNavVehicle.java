@@ -28,7 +28,7 @@ public class AutoNavVehicle extends Application {  //规则和环境没有添加
         Parent root = loader.load();
         
         Scene scene = new Scene(root);
-        stage.setTitle("AutoNavVehicle");
+        stage.setTitle("群无人艇智能避碰仿真平台");
         stage.setScene(scene);
         stage.show();
         
