@@ -211,23 +211,23 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         }
         //--------- 聚类分析 ----------拿local做计算
         //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
-        LinkedList<LocalVessel> part1 = new LinkedList<>();  //  -30 -> 30
-        LinkedList<LocalVessel> part2 = new LinkedList<>();  // 30 -> 90
-        LinkedList<LocalVessel> part3 = new LinkedList<>();  // 90 -> 210
-        LinkedList<LocalVessel> part4 = new LinkedList<>();  //210 - 330
+        LinkedList<LocalVessel> part1 = new LinkedList<>();  //  355 -> 5
+        LinkedList<LocalVessel> part2 = new LinkedList<>();  // 5 -> 112.5
+        LinkedList<LocalVessel> part3 = new LinkedList<>();  // 112.5 -> 210
+        LinkedList<LocalVessel> part4 = new LinkedList<>();  //210 - 355
         
         for (LocalVessel getLocalVessel : locals) {  //分区
             
-            if (getLocalVessel.ratio >= 330 || getLocalVessel.ratio <= 30) {
+            if (getLocalVessel.ratio >= 355 || getLocalVessel.ratio <= 5) {
                 part1.add(getLocalVessel);
             }
-            if (getLocalVessel.ratio > 30 && getLocalVessel.ratio <= 90) {
+            if (getLocalVessel.ratio > 5 && getLocalVessel.ratio <= 112.5) {
                 part2.add(getLocalVessel);
             }
-            if (getLocalVessel.ratio > 90 && getLocalVessel.ratio <= 210) {
+            if (getLocalVessel.ratio > 112.5 && getLocalVessel.ratio <= 210) {
                 part3.add(getLocalVessel);
             }
-            if (getLocalVessel.ratio > 210 && getLocalVessel.ratio < 330) {
+            if (getLocalVessel.ratio > 210 && getLocalVessel.ratio < 355) {
                 part4.add(getLocalVessel);
             }
         }
@@ -243,7 +243,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
         //这里转换成负数，方便后边排序计算-----part1---根据ratio排序
         for(int g = 0; g < part1.size(); g++){  //只需要对第一个进行特殊处理
             LocalVessel temp = part1.get(g);
-            if (temp.ratio >= 330) {
+            if (temp.ratio >= 355) {
                 temp.ratio -= 360;
             }
         }
@@ -607,7 +607,7 @@ public abstract class Navigator extends Button implements Rule, Manipulation{
                 //speedDecision = 1;
                 //lastSpeedDecision -= speedDecision;
                 
-                //sendToSome(two.get(0), "bow");  //stern
+                //sendToSome(two.get(0), "bow");  //stern   这里是进行协商通信的地方
                 //System.out.println("船首没有船 ____" + this.idNumber + "对右舷的航行器说： 我需要过船首");
             } else {  //取最右的
                 headDecision = (headDecision > two.get(two.size()-1).getLast().ratio) ?

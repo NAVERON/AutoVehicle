@@ -5,7 +5,6 @@
  */
 package service;
 
-import controlcenter.AutoNavVehicle;
 import java.util.concurrent.ArrayBlockingQueue;
 import navigator.Navigator;
 import environment.MessageType;

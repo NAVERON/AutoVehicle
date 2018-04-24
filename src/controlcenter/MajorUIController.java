@@ -9,17 +9,12 @@ import java.net.URL;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.ResourceBundle;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Point2D;
-import javafx.scene.Group;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -31,7 +26,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import navigator.DynInfo;
 import navigator.Vessel;
 import navigator.VesselCreateFactory;
 import unity.FileDataManager;
@@ -105,7 +99,7 @@ public class MajorUIController implements Initializable {
         type_choice.getSelectionModel().selectFirst();
         
         chartShow.getData().addAll(courseSeries, speedSeries, rudderSeries);
-        showPane.setId("showPane");
+        //showPane.setId("showPane");
         
         //showPane.getChildren().add(new Circle(300, 50, 10, Color.BLUE));
     }
@@ -352,11 +346,6 @@ public class MajorUIController implements Initializable {
     public XYChart.Series<Number, Number> courseSeries = new XYChart.Series<>();
     public XYChart.Series<Number, Number> speedSeries = new XYChart.Series<>();
     public XYChart.Series<Number, Number> rudderSeries = new XYChart.Series<>();
-    
-    //public ExecutorService executor;
-//    public ConcurrentLinkedQueue<Number> dataQ1 = new ConcurrentLinkedQueue<>();
-//    public ConcurrentLinkedQueue<Number> dataQ2 = new ConcurrentLinkedQueue<>();
-//    public ConcurrentLinkedQueue<Number> dataQ3 = new ConcurrentLinkedQueue<>();
     
     public chartUpdate chartupdate = null;
     public int time = 0;
