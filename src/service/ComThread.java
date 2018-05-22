@@ -63,7 +63,7 @@ public class ComThread extends Thread{
             for (LocalVessel next : navigator.locals) {
                 if (next.id.equals(message.getFrom())) {
                     get = next;
-                    navigator.isCom = true;  //////////////////////////////////////////////////////////////////////----->不使用协商
+                    navigator.isCom = true;
                     
                     break;
                 }
